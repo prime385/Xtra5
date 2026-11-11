@@ -1,22 +1,32 @@
 package com.github.andreyasadchy.xtra.custom
 
 import android.app.Activity
+import android.os.Handler
+import android.os.Looper
+import android.text.format.DateUtils
 import android.view.KeyEvent
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.media3.ui.DefaultTimeBar
 import com.github.andreyasadchy.xtra.R
 import com.github.andreyasadchy.xtra.ui.player.PlayerFragment
 import com.github.andreyasadchy.xtra.util.prefs
+import java.lang.ref.WeakReference
 
 /**
  * Xtra5 custom: remote / D-pad shortcuts in the full-screen player.
  *
  * Only active when enabled in Settings, the player is maximized and its on-screen controls are hidden:
  *   Left / Right  rewind / fast-forward by a fixed step (VODs, clips and downloads; not live streams)
- *   Up            show the on-screen controls
+ *   Up            show the controls and "hold" the seek bar (live streams: just show the controls)
  *   Down          open the Chapters menu, if the VOD has chapters
+ * While the seek bar is held (like a finger on the marker):
+ *   Left / Right  move the marker by a percentage of the video length
+ *   OK            let go: seek to the marker
+ *   Back          cancel; also cancels by itself after 6 seconds without input
  * Holding a button counts as one press.
  *
  * Kept in its own package so upstream Xtra updates can be merged without conflicts.
@@ -26,7 +36,10 @@ object TvShortcuts {
 
     const val PREF_ENABLED = "xtra5_tv_shortcuts"
     const val PREF_SEEK_STEP = "xtra5_tv_seek_step"
+    const val PREF_SCRUB_PERCENT = "xtra5_tv_scrub_percent"
     private const val DEFAULT_SEEK_STEP = 10
+    private const val DEFAULT_SCRUB_PERCENT = 5
+    private const val SCRUB_TIMEOUT_MS = 6000L
 
     /** Player state the shortcuts need; built by PlayerFragment.xtra5PlayerState(). */
     class PlayerState(
@@ -40,14 +53,48 @@ object TvShortcuts {
     /** Keys whose ACTION_DOWN we consumed, so their ACTION_UP is consumed too. */
     private val consumed = HashSet<Int>()
 
+    // Seek bar "held" state (only while scrubbing).
+    private class Scrub(val player: WeakReference<PlayerFragment>, val showController: () -> Unit, val duration: Long, var position: Long)
+    private var scrub: Scrub? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private val timeout = Runnable { endScrub(commit = false) }
+
+    private val dpadKeys = setOf(KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN)
+    private val okKeys = setOf(KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER)
+
     /** Returns true if the key event was handled and should not reach the rest of the app. */
     fun handle(activity: Activity, playerFragment: Fragment?, event: KeyEvent): Boolean {
         val keyCode = event.keyCode
-        if (keyCode != KeyEvent.KEYCODE_DPAD_LEFT && keyCode != KeyEvent.KEYCODE_DPAD_RIGHT &&
-            keyCode != KeyEvent.KEYCODE_DPAD_UP && keyCode != KeyEvent.KEYCODE_DPAD_DOWN) return false
+        val scrubbing = scrub != null
+        if (keyCode !in dpadKeys && !(scrubbing && (keyCode in okKeys || keyCode == KeyEvent.KEYCODE_BACK))) {
+            return if (event.action == KeyEvent.ACTION_UP) consumed.remove(keyCode) else false
+        }
         if (event.action == KeyEvent.ACTION_UP) return consumed.remove(keyCode)
         if (event.action != KeyEvent.ACTION_DOWN) return false
         if (event.repeatCount > 0) return consumed.contains(keyCode) // holding = a single press
+
+        if (scrubbing) {
+            val current = scrub!!
+            if (current.player.get() !== playerFragment || playerFragment?.isResumed != true) {
+                endScrub(commit = false)
+            } else {
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        val step = current.duration * getScrubPercent(activity) / 100
+                        val direction = if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) -1 else 1
+                        current.position = (current.position + direction * step).coerceIn(0L, current.duration)
+                        showScrubPosition(current)
+                        handler.removeCallbacks(timeout)
+                        handler.postDelayed(timeout, SCRUB_TIMEOUT_MS)
+                    }
+                    in okKeys -> endScrub(commit = true)
+                    KeyEvent.KEYCODE_BACK -> endScrub(commit = false)
+                    // Up / Down: ignored while the seek bar is held
+                }
+                consumed.add(keyCode)
+                return true
+            }
+        }
 
         if (!activity.prefs().getBoolean(PREF_ENABLED, false)) return false
         val player = playerFragment as? PlayerFragment ?: return false
@@ -66,7 +113,7 @@ object TvShortcuts {
                 }
             }
             KeyEvent.KEYCODE_DPAD_UP -> {
-                state.showController()
+                if (state.isLiveStream || !startScrub(player, state)) state.showController()
                 true
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> {
@@ -88,6 +135,51 @@ object TvShortcuts {
         player.getTotalDuration()?.takeIf { it > 0 }?.let { target = target.coerceAtMost(it) }
         player.seek(target)
     }
+
+    /** Shows the controls with the seek bar held at the current position. False if not possible. */
+    private fun startScrub(player: PlayerFragment, state: PlayerState): Boolean {
+        val view = player.view ?: return false
+        val bar = view.findViewById<DefaultTimeBar>(R.id.progressBar) ?: return false
+        val duration = player.getTotalDuration()?.takeIf { it > 0 } ?: return false
+        val position = (player.getCurrentPosition() ?: return false).coerceIn(0L, duration)
+        // A pressed seek bar stops the player from moving the marker and from auto-hiding the controls.
+        bar.isPressed = true
+        state.showController()
+        val current = Scrub(WeakReference(player), state.showController, duration, position)
+        scrub = current
+        showScrubPosition(current)
+        handler.removeCallbacks(timeout)
+        handler.postDelayed(timeout, SCRUB_TIMEOUT_MS)
+        return true
+    }
+
+    private fun showScrubPosition(current: Scrub) {
+        val view = current.player.get()?.view ?: return
+        view.findViewById<DefaultTimeBar>(R.id.progressBar)?.setPosition(current.position)
+        view.findViewById<TextView>(R.id.position)?.text = DateUtils.formatElapsedTime(current.position / 1000)
+    }
+
+    /** Lets go of the seek bar: seeks to the marker when [commit], otherwise puts it back. */
+    private fun endScrub(commit: Boolean) {
+        val current = scrub ?: return
+        scrub = null
+        handler.removeCallbacks(timeout)
+        val player = current.player.get() ?: return
+        val view = player.view ?: return
+        val bar = view.findViewById<DefaultTimeBar>(R.id.progressBar)
+        bar?.isPressed = false
+        if (commit) {
+            player.seek(current.position)
+        } else {
+            val position = player.getCurrentPosition() ?: 0L
+            bar?.setPosition(position)
+            view.findViewById<TextView>(R.id.position)?.text = DateUtils.formatElapsedTime(position / 1000)
+        }
+        current.showController() // restarts the normal auto-hide timer
+    }
+
+    fun getScrubPercent(activity: Activity): Int =
+        activity.prefs().getInt(PREF_SCRUB_PERCENT, DEFAULT_SCRUB_PERCENT).coerceIn(1, 10)
 
     fun getSeekStep(activity: Activity): Int =
         activity.prefs().getInt(PREF_SEEK_STEP, DEFAULT_SEEK_STEP).coerceIn(5, 60)

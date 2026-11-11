@@ -129,6 +129,18 @@
             app:showSeekBarValue="true"
             app:singleLineTitle="false" />
 
+        <SeekBarPreference
+            android:defaultValue="5"
+            android:dependency="xtra5_tv_shortcuts"
+            android:key="xtra5_tv_scrub_percent"
+            android:max="10"
+            android:title="@string/xtra5_tv_scrub_percent"
+            app:iconSpaceReserved="false"
+            app:min="1"
+            app:seekBarIncrement="1"
+            app:showSeekBarValue="true"
+            app:singleLineTitle="false" />
+
     </PreferenceCategory>
 
 </androidx.preference.PreferenceScreen>

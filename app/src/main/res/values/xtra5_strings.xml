@@ -6,6 +6,7 @@
     <string name="xtra5_highlight_color" translatable="false">Default highlight color</string>
     <string name="xtra5_tv_shortcuts_category" translatable="false">TV mode shortcuts (Xtra5)</string>
     <string name="xtra5_tv_shortcuts" translatable="false">Enable TV mode shortcuts</string>
-    <string name="xtra5_tv_shortcuts_summary" translatable="false">With the player controls hidden: Left/Right seek, Up shows controls, Down opens chapters</string>
+    <string name="xtra5_tv_shortcuts_summary" translatable="false">With the player controls hidden: Left/Right seek, Up holds the seek bar (Left/Right to move, OK to jump, Back to cancel), Down opens chapters</string>
     <string name="xtra5_tv_seek_step" translatable="false">Seek step (seconds)</string>
+    <string name="xtra5_tv_scrub_percent" translatable="false">Seek bar jump (% of video length)</string>
 </resources>
