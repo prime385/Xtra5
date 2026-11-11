@@ -105,7 +105,8 @@ object NarrowCards {
         }
         val state = layout.getTag(R.id.xtra5_narrow_cards) as State
         state.narrow = null // re-apply for this item (avatar visibility can differ)
-        update(card, layout, state, onChange, narrowSet)
+        // The adapter sets visibilities after this hook runs, so wait until bind() has finished.
+        card.post { update(card, layout, state, onChange, narrowSet) }
     }
 
     private fun update(card: View, layout: ConstraintLayout, state: State, onChange: ((Boolean) -> Unit)?, narrowSet: (Boolean) -> ConstraintSet) {
@@ -114,9 +115,18 @@ object NarrowCards {
         val narrow = width / card.resources.displayMetrics.density < NARROW_DP
         if (narrow == state.narrow) return
         state.narrow = narrow
+        // ConstraintSet also stores visibility; keep whatever the adapter decided to show.
+        val visibility = IntArray(layout.childCount) { layout.getChildAt(it).visibility }
         // Start from the original each time, so switching back and forth is exact.
+        fun restoreVisibility() {
+            for (i in 0 until layout.childCount) layout.getChildAt(i).visibility = visibility[i]
+        }
         state.original.applyTo(layout)
-        if (narrow) narrowSet(true).applyTo(layout)
+        restoreVisibility() // the narrow set checks the avatar's real visibility
+        if (narrow) {
+            narrowSet(true).applyTo(layout)
+            restoreVisibility()
+        }
         onChange?.invoke(narrow)
         card.post { card.requestLayout() }
     }

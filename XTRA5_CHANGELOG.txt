@@ -1,6 +1,13 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.15.1 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Channel icons (and streamer avatars on video cards) missing on narrow cards in 1.15.0. The
+  narrow layout now waits until each card is set up and never changes what is shown or hidden.
+========================================
 Xtra5 1.15.0 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
