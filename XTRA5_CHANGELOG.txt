@@ -1,6 +1,15 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.17.0 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Fixed top bar (Settings > UI > Top bar, on by default): the title bar with search and
+  settings, the section tabs (with the line under them) and the sort bar stay in place while
+  lists scroll, on every main screen including channel and category pages. Turn it off to get
+  the original scroll-away bar back. Applies to screens opened after changing it.
+========================================
 Xtra5 1.16.0 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

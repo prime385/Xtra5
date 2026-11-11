@@ -254,4 +254,19 @@
 
     </PreferenceCategory>
 
+    <!-- Xtra5 custom: fixed top bar -->
+    <PreferenceCategory
+        android:title="@string/xtra5_top_bar"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="xtra5_fixed_top_bar"
+            android:summary="@string/xtra5_fixed_top_bar_summary"
+            android:title="@string/xtra5_fixed_top_bar"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+    </PreferenceCategory>
+
 </androidx.preference.PreferenceScreen>

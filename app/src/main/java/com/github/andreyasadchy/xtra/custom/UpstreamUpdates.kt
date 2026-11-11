@@ -41,6 +41,7 @@ object UpstreamUpdates {
 
     /** Called from MainActivity.onCreate, before the built-in update check runs. */
     fun onMainActivityCreate(activity: AppCompatActivity) {
+        FixedTopBar.register(activity) // Xtra5: fixed top bar (Settings > UI)
         val prefs = activity.prefs()
         // Point the built-in updater at Xtra5 releases, never at official Xtra builds.
         val url = prefs.getString(C.UPDATE_URL, null)
