@@ -301,31 +301,64 @@ object HighlightDialogs {
             })
             addView(hex, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         }
-        val content = LinearLayout(ctx).apply {
+        val metrics = ctx.resources.displayMetrics
+        val landscape = metrics.widthPixels > metrics.heightPixels
+        // Room left for the wheel after the dialog title, buttons and the other controls.
+        wheel.maxSizePx = if (landscape) {
+            (metrics.heightPixels - dp(ctx, 190)).coerceIn(dp(ctx, 140), dp(ctx, 260))
+        } else {
+            (metrics.heightPixels - dp(ctx, 470)).coerceIn(dp(ctx, 120), dp(ctx, 240))
+        }
+        fun matchWidth(top: Int = 0) = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = top }
+        val presetsLabel = TextView(ctx).apply {
+            text = "Presets"
+            setPadding(dp(ctx, 4), dp(ctx, 8), 0, 0)
+        }
+        val presets = HorizontalScrollView(ctx).apply {
+            isHorizontalScrollBarEnabled = false
+            addView(swatchRow)
+        }
+        val controls = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(ctx, 20), dp(ctx, 8), dp(ctx, 20), 0)
-            addView(preview, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = dp(ctx, 12) })
-            addView(wheel, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.CENTER_HORIZONTAL })
-            addView(hexRow, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(ctx, 8) })
+            if (landscape) addView(preview, matchWidth())
+            addView(hexRow, matchWidth(dp(ctx, if (landscape) 4 else 8)))
             addView(brightLabel)
-            addView(bright, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            addView(bright, matchWidth())
             addView(opacityLabel)
-            addView(opacity, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-            addView(TextView(ctx).apply {
-                text = "Presets"
-                setPadding(dp(ctx, 4), dp(ctx, 8), 0, 0)
-            })
-            addView(HorizontalScrollView(ctx).apply {
-                isHorizontalScrollBarEnabled = false
-                addView(swatchRow)
-            })
+            addView(opacity, matchWidth())
+            addView(presetsLabel)
+            addView(presets)
+        }
+        val content = if (landscape) {
+            // Wheel on the left, everything else on the right: no scrolling needed.
+            LinearLayout(ctx).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(dp(ctx, 20), dp(ctx, 4), dp(ctx, 20), 0)
+                addView(wheel, LinearLayout.LayoutParams(wheel.maxSizePx, wheel.maxSizePx).apply { marginEnd = dp(ctx, 20) })
+                addView(controls, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            }
+        } else {
+            LinearLayout(ctx).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(ctx, 20), dp(ctx, 8), dp(ctx, 20), 0)
+                addView(preview, matchWidth().apply { bottomMargin = dp(ctx, 8) })
+                addView(wheel, matchWidth().apply { gravity = Gravity.CENTER_HORIZONTAL })
+                addView(controls, matchWidth())
+            }
         }
         refresh(null)
-        builder.setTitle(title)
-            .setView(ScrollView(ctx).apply { addView(content) })
+        val dialog = builder.setTitle(title)
+            .setView(ScrollView(ctx).apply { addView(content) }) // fallback for very small screens
             .setPositiveButton(android.R.string.ok) { _, _ -> onPicked(current()) }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+        if (landscape) {
+            dialog.window?.setLayout(
+                (metrics.widthPixels * 0.8f).toInt().coerceAtMost(dp(ctx, 720)),
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        }
     }
 
     fun swatch(context: Context, color: Int, sizeDp: Int, selected: Boolean = false): GradientDrawable =

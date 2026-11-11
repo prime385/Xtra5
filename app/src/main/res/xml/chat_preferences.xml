@@ -358,6 +358,40 @@
         app:iconSpaceReserved="false"
         app:singleLineTitle="false" />
 
+    <!-- Xtra5 custom: chat appearance -->
+    <PreferenceCategory
+        android:title="@string/xtra5_chat_appearance"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="xtra5_chat_lines"
+            android:title="@string/xtra5_chat_lines"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SeekBarPreference
+            android:defaultValue="4"
+            android:key="xtra5_chat_spacing"
+            android:max="50"
+            android:title="@string/xtra5_chat_spacing"
+            app:iconSpaceReserved="false"
+            app:min="1"
+            app:showSeekBarValue="true"
+            app:singleLineTitle="false" />
+
+        <ListPreference
+            android:defaultValue="default"
+            android:entries="@array/xtra5_chat_font_entries"
+            android:entryValues="@array/xtra5_chat_font_values"
+            android:key="xtra5_chat_font"
+            android:summary="%s"
+            android:title="@string/xtra5_chat_font"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+    </PreferenceCategory>
+
     <!-- Xtra5 custom: user highlights -->
     <PreferenceCategory
         android:title="@string/xtra5_highlights"

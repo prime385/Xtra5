@@ -9,4 +9,24 @@
     <string name="xtra5_tv_shortcuts_summary" translatable="false">With the player controls hidden: Left/Right seek, Up holds the seek bar (Left/Right to move, OK to jump, Back to cancel), Down opens chapters</string>
     <string name="xtra5_tv_seek_step" translatable="false">Seek step (seconds)</string>
     <string name="xtra5_tv_scrub_percent" translatable="false">Seek bar jump (% of video length)</string>
+    <string name="xtra5_chat_appearance" translatable="false">Chat appearance (Xtra5)</string>
+    <string name="xtra5_chat_lines" translatable="false">Lines between messages</string>
+    <string name="xtra5_chat_spacing" translatable="false">Message spacing (px)</string>
+    <string name="xtra5_chat_font" translatable="false">Chat font</string>
+    <string-array name="xtra5_chat_font_entries" translatable="false">
+        <item>Default</item>
+        <item>Regular</item>
+        <item>Light</item>
+        <item>Medium</item>
+        <item>Condensed</item>
+        <item>Condensed medium</item>
+    </string-array>
+    <string-array name="xtra5_chat_font_values" translatable="false">
+        <item>default</item>
+        <item>regular</item>
+        <item>light</item>
+        <item>medium</item>
+        <item>condensed</item>
+        <item>condensed_medium</item>
+    </string-array>
 </resources>

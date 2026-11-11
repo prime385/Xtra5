@@ -201,6 +201,7 @@ class ChatFragment : BaseNetworkFragment(), MessageClickedDialog.OnButtonClickLi
                         it.adapter = adapter
                         it.itemAnimator = null
                         it.layoutManager = LinearLayoutManager(context).apply { stackFromEnd = true }
+                        com.github.andreyasadchy.xtra.custom.ChatAppearance.apply(it) // Xtra5 custom
                         it.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                                 super.onScrollStateChanged(recyclerView, newState)

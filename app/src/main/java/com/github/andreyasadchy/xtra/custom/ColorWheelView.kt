@@ -26,6 +26,9 @@ class ColorWheelView(context: Context) : View(context) {
 
     var onChanged: ((hue: Float, saturation: Float) -> Unit)? = null
 
+    /** Largest size of the wheel in pixels (it is always square). */
+    var maxSizePx = (240 * resources.displayMetrics.density).toInt()
+
     private var hue = 0f
     private var saturation = 0f
     private var brightness = 1f
@@ -56,8 +59,7 @@ class ColorWheelView(context: Context) : View(context) {
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val w = MeasureSpec.getSize(widthMeasureSpec)
-        val max = (240 * resources.displayMetrics.density).toInt()
-        val size = if (w > 0) min(w, max) else max
+        val size = if (w > 0) min(w, maxSizePx) else maxSizePx
         setMeasuredDimension(size, size)
     }
 

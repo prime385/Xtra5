@@ -12,6 +12,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.media3.ui.DefaultTimeBar
 import com.github.andreyasadchy.xtra.R
+import com.github.andreyasadchy.xtra.ui.main.MainActivity
 import com.github.andreyasadchy.xtra.ui.player.PlayerFragment
 import com.github.andreyasadchy.xtra.util.prefs
 import java.lang.ref.WeakReference
@@ -28,6 +29,7 @@ import java.lang.ref.WeakReference
  *   OK            let go: seek to the marker
  *   Back          cancel; also cancels by itself after 6 seconds without input
  * Holding a button counts as one press.
+ * Long-press Back (player full-size or minimized): close the player, like swiping it away.
  *
  * Kept in its own package so upstream Xtra updates can be merged without conflicts.
  * Upstream hooks: MainActivity.dispatchKeyEvent and PlayerFragment.xtra5PlayerState.
@@ -40,6 +42,7 @@ object TvShortcuts {
     private const val DEFAULT_SEEK_STEP = 10
     private const val DEFAULT_SCRUB_PERCENT = 5
     private const val SCRUB_TIMEOUT_MS = 6000L
+    private const val LONG_PRESS_REPEATS = 8 // fallback if a remote never flags the long press
 
     /** Player state the shortcuts need; built by PlayerFragment.xtra5PlayerState(). */
     class PlayerState(
@@ -66,11 +69,23 @@ object TvShortcuts {
     fun handle(activity: Activity, playerFragment: Fragment?, event: KeyEvent): Boolean {
         val keyCode = event.keyCode
         val scrubbing = scrub != null
-        if (keyCode !in dpadKeys && !(scrubbing && (keyCode in okKeys || keyCode == KeyEvent.KEYCODE_BACK))) {
+        val isBack = keyCode == KeyEvent.KEYCODE_BACK
+        if (keyCode !in dpadKeys && !isBack && !(scrubbing && keyCode in okKeys)) {
             return if (event.action == KeyEvent.ACTION_UP) consumed.remove(keyCode) else false
         }
         if (event.action == KeyEvent.ACTION_UP) return consumed.remove(keyCode)
         if (event.action != KeyEvent.ACTION_DOWN) return false
+
+        // Long-press Back: close the player completely, like swiping it away.
+        if (isBack && !scrubbing && event.repeatCount > 0 && !consumed.contains(keyCode) &&
+            (event.isLongPress || event.repeatCount >= LONG_PRESS_REPEATS)) {
+            if (closePlayer(activity, playerFragment)) {
+                consumed.add(keyCode)
+                return true
+            }
+        }
+        if (isBack && !scrubbing) return consumed.contains(keyCode) // short press: normal Back
+
         if (event.repeatCount > 0) return consumed.contains(keyCode) // holding = a single press
 
         if (scrubbing) {
@@ -128,12 +143,24 @@ object TvShortcuts {
         return handled
     }
 
+    /** Closes the player the same way swiping it away does. */
+    private fun closePlayer(activity: Activity, playerFragment: Fragment?): Boolean {
+        if (!activity.prefs().getBoolean(PREF_ENABLED, false)) return false
+        val player = playerFragment as? PlayerFragment ?: return false
+        val main = activity as? MainActivity ?: return false
+        if (!player.isAdded) return false
+        player.close()
+        main.closePlayer()
+        return true
+    }
+
     private fun seek(activity: Activity, player: PlayerFragment, direction: Int) {
         val position = player.getCurrentPosition() ?: return
         val stepMs = getSeekStep(activity) * 1000L
         var target = (position + direction * stepMs).coerceAtLeast(0L)
         player.getTotalDuration()?.takeIf { it > 0 }?.let { target = target.coerceAtMost(it) }
         player.seek(target)
+        SeekIndicator.show(player, forward = direction > 0, seconds = getSeekStep(activity))
     }
 
     /** Shows the controls with the seek bar held at the current position. False if not possible. */

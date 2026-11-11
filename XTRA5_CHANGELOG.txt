@@ -1,6 +1,27 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.7.0 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Chat appearance (Settings > Chat > Chat appearance):
+  - Message spacing: 1-50 px of space between chat messages (default 4).
+  - Lines between messages: a thin line in the middle of the gap. Off by default.
+  - Chat font: Default, Regular, Light, Medium, Condensed or Condensed medium
+    (Android's built-in Roboto family, as used by S0undTV).
+  Changes apply the next time the chat opens.
+- Long-press Back on the remote closes the stream or VOD completely, like swiping the player
+  away. Works with the player full-size or minimized. Part of TV mode shortcuts. A short press
+  of Back is unchanged, and while the seek bar is held Back still just cancels.
+- Rewind / fast-forward animation for TV mode Left/Right skips: a large icon with the amount
+  ("10s") at the left center (rewind) or right center (fast-forward) of the video. Quick
+  presses add up ("20s", "30s") and it fades 0.7 seconds after the last press.
+
+Changed
+- Color picker fits without scrolling: in landscape the wheel sits on the left with the other
+  controls on the right; in portrait the wheel shrinks to fit smaller screens.
+========================================
 Xtra5 1.6.0 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
