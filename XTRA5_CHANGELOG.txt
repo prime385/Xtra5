@@ -1,6 +1,14 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.18.2 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Fixed top bar no longer turns grey when you scroll: with Fixed top bar on, the "lift on
+  scroll" color change is switched off. With Fixed top bar off, Settings > Theme > Lift app bar
+  on scroll works as before.
+========================================
 Xtra5 1.18.1 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

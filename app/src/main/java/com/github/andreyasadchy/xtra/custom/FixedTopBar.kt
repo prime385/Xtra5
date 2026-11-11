@@ -12,7 +12,7 @@ import com.google.android.material.appbar.AppBarLayout
 
 /**
  * Xtra5 custom: keep the top bar (title bar, section tabs, sort bar) fixed instead of scrolling
- * away with the list. On/off in Settings > UI > Top bar. Applies to every screen of the main
+ * away with the list, without the lift-on-scroll color change. On/off in Settings > UI > Top bar. Applies to every screen of the main
  * activity; the Settings screen is separate and unchanged.
  *
  * Kept in its own package so upstream Xtra updates can be merged without conflicts.
@@ -39,6 +39,8 @@ object FixedTopBar {
 
     private fun fix(appBar: AppBarLayout) {
         clearScrollFlags(appBar)
+        // A fixed bar shouldn't change color while the list scrolls ("lift on scroll").
+        appBar.setLiftable(false)
         if (appBar.getTag(R.id.xtra5_fixed_top_bar) == null) {
             appBar.setTag(R.id.xtra5_fixed_top_bar, true)
             // Some screens (a channel's pages) turn scrolling back on when switching tabs.
