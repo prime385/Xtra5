@@ -13,6 +13,7 @@
     <string name="xtra5_chat_lines" translatable="false">Lines between messages</string>
     <string name="xtra5_chat_spacing" translatable="false">Message spacing (px)</string>
     <string name="xtra5_chat_font" translatable="false">Chat font</string>
+    <string name="xtra5_chat_username_size" translatable="false">Username size (% of message text)</string>
     <string-array name="xtra5_chat_font_entries" translatable="false">
         <item>Default</item>
         <item>Regular</item>

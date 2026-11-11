@@ -380,6 +380,17 @@
             app:showSeekBarValue="true"
             app:singleLineTitle="false" />
 
+        <SeekBarPreference
+            android:defaultValue="100"
+            android:key="xtra5_chat_username_size"
+            android:max="150"
+            android:title="@string/xtra5_chat_username_size"
+            app:iconSpaceReserved="false"
+            app:min="50"
+            app:seekBarIncrement="5"
+            app:showSeekBarValue="true"
+            app:singleLineTitle="false" />
+
         <ListPreference
             android:defaultValue="default"
             android:entries="@array/xtra5_chat_font_entries"

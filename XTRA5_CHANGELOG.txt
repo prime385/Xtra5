@@ -1,6 +1,19 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.8.0 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Username size (Settings > Chat > Chat appearance): 50-150% of the message text size,
+  default 100%. Only the name at the start of each message changes. For bold names use
+  official Xtra's Bold usernames switch at the top of the Chat settings.
+
+Changed
+- Seek bar hold: after pressing OK or Back, while the controls are still showing, Left / Right
+  hold the seek bar again and move it by your Seek bar jump step. OK jumps, Back cancels, as
+  before. Once the controls hide, Left / Right go back to fixed Seek step skips.
+========================================
 Xtra5 1.7.0 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

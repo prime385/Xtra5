@@ -301,6 +301,7 @@ object ChatAdapterUtils {
                     }
                     builder.append(userName)
                     builder.setSpan(ForegroundColorSpan(color), builderIndex, builderIndex + userName.length, SPAN_EXCLUSIVE_EXCLUSIVE)
+                    com.github.andreyasadchy.xtra.custom.ChatAppearance.styleUserName(context, builder, builderIndex, builderIndex + userName.length) // Xtra5 custom
                     if (useBoldNames) {
                         builder.setSpan(StyleSpan(Typeface.BOLD), builderIndex, builderIndex + userName.length, SPAN_EXCLUSIVE_EXCLUSIVE)
                     }

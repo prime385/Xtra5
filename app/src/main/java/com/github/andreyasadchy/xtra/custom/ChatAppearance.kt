@@ -3,7 +3,10 @@ package com.github.andreyasadchy.xtra.custom
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
+import android.content.Context
 import android.graphics.Typeface
+import android.text.Spannable
+import android.text.style.RelativeSizeSpan
 import android.util.TypedValue
 import android.view.View
 import android.widget.TextView
@@ -11,16 +14,18 @@ import androidx.recyclerview.widget.RecyclerView
 import com.github.andreyasadchy.xtra.util.prefs
 
 /**
- * Xtra5 custom: chat message spacing, separator lines and chat font.
+ * Xtra5 custom: chat message spacing, separator lines, chat font and username size.
  *
  * Kept in its own package so upstream Xtra updates can be merged without conflicts.
- * Upstream hook: ChatFragment (chat list setup). Settings take effect when the chat is opened.
+ * Upstream hooks: ChatFragment (chat list setup; spacing, lines and font take effect when the
+ * chat is opened) and ChatAdapterUtils.prepareChatMessage (username size, applied per message).
  */
 object ChatAppearance {
 
     const val PREF_LINES = "xtra5_chat_lines"
     const val PREF_SPACING = "xtra5_chat_spacing"
     const val PREF_FONT = "xtra5_chat_font"
+    const val PREF_USERNAME_SIZE = "xtra5_chat_username_size"
     private const val DEFAULT_SPACING = 4
 
     private val fonts = mapOf(
@@ -48,6 +53,14 @@ object ChatAppearance {
 
                 override fun onChildViewDetachedFromWindow(view: View) {}
             })
+        }
+    }
+
+    /** Sizes the username at the start of a message (50-150% of the message text). */
+    fun styleUserName(context: Context, builder: Spannable, start: Int, end: Int) {
+        val percent = context.prefs().getInt(PREF_USERNAME_SIZE, 100).coerceIn(50, 150)
+        if (percent != 100 && end > start) {
+            builder.setSpan(RelativeSizeSpan(percent / 100f), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
     }
 

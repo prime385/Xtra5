@@ -6,6 +6,7 @@ import android.os.Looper
 import android.text.format.DateUtils
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewTreeObserver
 import android.widget.EditText
 import android.widget.TextView
 import androidx.core.view.isVisible
@@ -28,6 +29,7 @@ import java.lang.ref.WeakReference
  *   Left / Right  move the marker by a percentage of the video length
  *   OK            let go: seek to the marker
  *   Back          cancel; also cancels by itself after 6 seconds without input
+ * After letting go, while the controls are still showing, Left / Right hold the seek bar again.
  * Holding a button counts as one press.
  * Long-press Back (player full-size or minimized): close the player, like swiping it away.
  *
@@ -59,6 +61,8 @@ object TvShortcuts {
     // Seek bar "held" state (only while scrubbing).
     private class Scrub(val player: WeakReference<PlayerFragment>, val showController: () -> Unit, val duration: Long, var position: Long)
     private var scrub: Scrub? = null
+    /** Player whose seek bar was just let go of, while its controls are still showing. */
+    private var afterScrub: WeakReference<PlayerFragment>? = null
     private val handler = Handler(Looper.getMainLooper())
     private val timeout = Runnable { endScrub(commit = false) }
 
@@ -94,14 +98,8 @@ object TvShortcuts {
                 endScrub(commit = false)
             } else {
                 when (keyCode) {
-                    KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                        val step = current.duration * getScrubPercent(activity) / 100
-                        val direction = if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) -1 else 1
-                        current.position = (current.position + direction * step).coerceIn(0L, current.duration)
-                        showScrubPosition(current)
-                        handler.removeCallbacks(timeout)
-                        handler.postDelayed(timeout, SCRUB_TIMEOUT_MS)
-                    }
+                    KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT ->
+                        moveScrub(activity, current, if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) -1 else 1)
                     in okKeys -> endScrub(commit = true)
                     KeyEvent.KEYCODE_BACK -> endScrub(commit = false)
                     // Up / Down: ignored while the seek bar is held
@@ -118,7 +116,18 @@ object TvShortcuts {
         if (!state.isMaximized) return false
         if (activity.currentFocus is EditText) return false // typing in chat
         val controls = player.view?.findViewById<View>(R.id.playerControls)
-        if (controls?.isVisible == true) return false // normal D-pad navigation of the controls
+        if (controls?.isVisible == true) {
+            // Right after letting go of the seek bar (controls still up): Left / Right hold it again.
+            if (afterScrub?.get() === player && !state.isLiveStream &&
+                (keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) &&
+                startScrub(player, state)) {
+                scrub?.let { moveScrub(activity, it, if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) -1 else 1) }
+                consumed.add(keyCode)
+                return true
+            }
+            return false // normal D-pad navigation of the controls
+        }
+        afterScrub = null
 
         val handled = when (keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
@@ -203,6 +212,26 @@ object TvShortcuts {
             view.findViewById<TextView>(R.id.position)?.text = DateUtils.formatElapsedTime(position / 1000)
         }
         current.showController() // restarts the normal auto-hide timer
+        // Until the controls hide, Left / Right hold the seek bar again (see handle()).
+        afterScrub = WeakReference(player)
+        view.findViewById<View>(R.id.playerControls)?.let { controls ->
+            controls.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    if (!controls.isVisible || scrub != null) {
+                        controls.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                        if (!controls.isVisible && afterScrub?.get() === player) afterScrub = null
+                    }
+                }
+            })
+        }
+    }
+
+    private fun moveScrub(activity: Activity, current: Scrub, direction: Int) {
+        val step = current.duration * getScrubPercent(activity) / 100
+        current.position = (current.position + direction * step).coerceIn(0L, current.duration)
+        showScrubPosition(current)
+        handler.removeCallbacks(timeout)
+        handler.postDelayed(timeout, SCRUB_TIMEOUT_MS)
     }
 
     fun getScrubPercent(activity: Activity): Int =
