@@ -26,7 +26,7 @@ import java.lang.ref.WeakReference
  *   Up            show the controls and "hold" the seek bar (live streams: just show the controls)
  *   Down          open the Chapters menu, if the VOD has chapters
  * While the seek bar is held (like a finger on the marker):
- *   Left / Right  move the marker by a percentage of the video length
+ *   Left / Right  move the marker by a percentage of the video length; hold to keep moving
  *   OK            let go: seek to the marker
  *   Back          cancel; also cancels by itself after 6 seconds without input
  * After letting go, while the controls are still showing, Left / Right hold the seek bar again.
@@ -44,6 +44,8 @@ object TvShortcuts {
     private const val DEFAULT_SEEK_STEP = 10
     private const val DEFAULT_SCRUB_PERCENT = 5
     private const val SCRUB_TIMEOUT_MS = 6000L
+    private const val HOLD_DELAY_MS = 400L // holding Left / Right in held mode: start repeating after
+    private const val HOLD_REPEAT_MS = 150L // then one step every
     private const val LONG_PRESS_REPEATS = 8 // fallback if a remote never flags the long press
 
     /** Player state the shortcuts need; built by PlayerFragment.xtra5PlayerState(). */
@@ -77,7 +79,10 @@ object TvShortcuts {
         if (keyCode !in dpadKeys && !isBack && !(scrubbing && keyCode in okKeys)) {
             return if (event.action == KeyEvent.ACTION_UP) consumed.remove(keyCode) else false
         }
-        if (event.action == KeyEvent.ACTION_UP) return consumed.remove(keyCode)
+        if (event.action == KeyEvent.ACTION_UP) {
+            if (keyCode == holdKey) stopHold()
+            return consumed.remove(keyCode)
+        }
         if (event.action != KeyEvent.ACTION_DOWN) return false
 
         // Long-press Back: close the player completely, like swiping it away.
@@ -98,8 +103,11 @@ object TvShortcuts {
                 endScrub(commit = false)
             } else {
                 when (keyCode) {
-                    KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT ->
-                        moveScrub(activity, current, if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) -1 else 1)
+                    KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        val direction = if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) -1 else 1
+                        moveScrub(activity, current, direction)
+                        startHold(activity, keyCode, direction)
+                    }
                     in okKeys -> endScrub(commit = true)
                     KeyEvent.KEYCODE_BACK -> endScrub(commit = false)
                     // Up / Down: ignored while the seek bar is held
@@ -121,7 +129,9 @@ object TvShortcuts {
             if (afterScrub?.get() === player && !state.isLiveStream &&
                 (keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) &&
                 startScrub(player, state)) {
-                scrub?.let { moveScrub(activity, it, if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) -1 else 1) }
+                val direction = if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) -1 else 1
+                scrub?.let { moveScrub(activity, it, direction) }
+                startHold(activity, keyCode, direction)
                 consumed.add(keyCode)
                 return true
             }
@@ -199,6 +209,7 @@ object TvShortcuts {
     private fun endScrub(commit: Boolean) {
         val current = scrub ?: return
         scrub = null
+        stopHold()
         handler.removeCallbacks(timeout)
         val player = current.player.get() ?: return
         val view = player.view ?: return
@@ -224,6 +235,36 @@ object TvShortcuts {
                 }
             })
         }
+    }
+
+    // Holding Left / Right while the seek bar is held keeps moving it, one step at a time.
+    private var holdKey = 0
+    private var holdDirection = 0
+    private var holdActivity: WeakReference<Activity>? = null
+    private val holdStep = object : Runnable {
+        override fun run() {
+            val current = scrub
+            val activity = holdActivity?.get()
+            if (current == null || activity == null) {
+                stopHold()
+                return
+            }
+            moveScrub(activity, current, holdDirection) // also keeps the idle timeout from firing
+            handler.postDelayed(this, HOLD_REPEAT_MS)
+        }
+    }
+
+    private fun startHold(activity: Activity, keyCode: Int, direction: Int) {
+        stopHold()
+        holdKey = keyCode
+        holdDirection = direction
+        holdActivity = WeakReference(activity)
+        handler.postDelayed(holdStep, HOLD_DELAY_MS)
+    }
+
+    private fun stopHold() {
+        handler.removeCallbacks(holdStep)
+        holdKey = 0
     }
 
     private fun moveScrub(activity: Activity, current: Scrub, direction: Int) {

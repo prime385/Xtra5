@@ -1,6 +1,15 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.9.0 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Changed
+- Seek bar hold: holding Left / Right keeps moving the marker in your Seek bar jump steps
+  (after 0.4 seconds, one step every 0.15 seconds) until you let go or it reaches the start or
+  end. Tapping still moves one step. OK jumps, Back cancels, as before.
+- Outside the seek bar hold, holding Left / Right is unchanged: one Seek step skip.
+========================================
 Xtra5 1.8.0 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
