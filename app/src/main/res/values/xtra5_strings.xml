@@ -35,4 +35,25 @@
     <string name="xtra5_card_name_size" translatable="false">Streamer name size (sp)</string>
     <string name="xtra5_card_category_size" translatable="false">Category size (sp)</string>
     <string name="xtra5_card_title_size" translatable="false">Title size (sp)</string>
+    <string name="xtra5_chapters_menu" translatable="false">Chapters menu (Xtra5)</string>
+    <string name="xtra5_chapter_columns_landscape" translatable="false">Chapter columns (landscape)</string>
+    <string name="xtra5_chapter_columns_portrait" translatable="false">Chapter columns (portrait)</string>
+    <string-array name="xtra5_chapter_columns_entries" translatable="false">
+        <item>Same as app layout</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+    </string-array>
+    <string-array name="xtra5_chapter_columns_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+    </string-array>
 </resources>

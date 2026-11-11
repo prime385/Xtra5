@@ -1,6 +1,14 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.14.0 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Chapters menu columns (Settings > UI > Chapters menu): separate column counts for the VOD
+  Chapters menu in landscape and portrait (1-6), so chapter card size no longer follows the
+  app's column settings. Default "Same as app layout" keeps the old behaviour.
+========================================
 Xtra5 1.13.0 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

@@ -227,4 +227,31 @@
 
     </PreferenceCategory>
 
+    <!-- Xtra5 custom: chapters menu columns -->
+    <PreferenceCategory
+        android:title="@string/xtra5_chapters_menu"
+        app:iconSpaceReserved="false">
+
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/xtra5_chapter_columns_entries"
+            android:entryValues="@array/xtra5_chapter_columns_values"
+            android:key="xtra5_chapter_columns_landscape"
+            android:summary="%s"
+            android:title="@string/xtra5_chapter_columns_landscape"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/xtra5_chapter_columns_entries"
+            android:entryValues="@array/xtra5_chapter_columns_values"
+            android:key="xtra5_chapter_columns_portrait"
+            android:summary="%s"
+            android:title="@string/xtra5_chapter_columns_portrait"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+    </PreferenceCategory>
+
 </androidx.preference.PreferenceScreen>

@@ -50,6 +50,7 @@ class PlayerGamesDialog : BottomSheetDialogFragment() {
                 )
             }
         }
+        com.github.andreyasadchy.xtra.custom.ChapterColumns.apply(recycleView) // Xtra5 custom
         return NestedScrollView(requireContext()).apply { addView(recycleView) }
     }
 
