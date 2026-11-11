@@ -24,7 +24,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.prime385.xtra5"
+        applicationId = "com.github.andreyasadchy.xtra"
         minSdk = 24
         targetSdk = 37
         versionCode = 121
@@ -131,5 +131,18 @@ File("${project.gradle.gradleUserHomeDir.absolutePath}/daemon/${project.gradle.g
     if (it.name.endsWith(".out.log")) {
         // println("Deleting gradle log file: $it") // Optional debug output
         it.delete()
+    }
+}
+// ---------------------------------------------------------------------------
+// Xtra5 custom build settings. Kept at the end of the file so upstream changes
+// above (including their versionCode/versionName bumps) merge without conflicts.
+// Versioning: MAJOR.FEATURE.FIX -> versionCode = MAJOR*10000 + FEATURE*100 + FIX
+// ---------------------------------------------------------------------------
+val xtra5Version = "1.1.0"
+android {
+    defaultConfig {
+        applicationId = "com.prime385.xtra5"
+        versionName = xtra5Version
+        versionCode = xtra5Version.split(".").map { it.toInt() }.let { (major, feature, fix) -> major * 10000 + feature * 100 + fix }
     }
 }

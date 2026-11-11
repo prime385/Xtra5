@@ -358,4 +358,26 @@
         app:iconSpaceReserved="false"
         app:singleLineTitle="false" />
 
+    <!-- Xtra5 custom: user highlights -->
+    <PreferenceCategory
+        android:title="@string/xtra5_highlights"
+        app:iconSpaceReserved="false">
+
+        <EditTextPreference
+            android:key="xtra5_highlight_users"
+            android:title="@string/xtra5_highlight_users"
+            android:summary="@string/xtra5_highlight_users_summary"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <EditTextPreference
+            android:defaultValue="#2196F3"
+            android:key="xtra5_highlight_color"
+            android:title="@string/xtra5_highlight_color"
+            android:summary="@string/xtra5_highlight_color_summary"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+    </PreferenceCategory>
+
 </androidx.preference.PreferenceScreen>

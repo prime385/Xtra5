@@ -30,6 +30,7 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.github.andreyasadchy.xtra.BuildConfig
 import com.github.andreyasadchy.xtra.R
+import com.github.andreyasadchy.xtra.custom.UserHighlights // Xtra5 custom
 import com.github.andreyasadchy.xtra.model.chat.ChatMessage
 import com.github.andreyasadchy.xtra.model.chat.CheerEmote
 import com.github.andreyasadchy.xtra.model.chat.Emote
@@ -397,6 +398,7 @@ object ChatAdapterUtils {
                     chatMessage.reward?.id != null && firstMsgVisibility < 2 -> itemView.setBackgroundResource(R.color.chatMessageReward)
                     chatMessage.systemMsg != null || chatMessage.msgId != null -> itemView.setBackgroundResource(R.color.chatMessageNotice)
                     wasMentioned -> itemView.setBackgroundResource(R.color.chatMessageMention)
+                    UserHighlights.colorFor(context, chatMessage) != null -> itemView.setBackgroundColor(UserHighlights.colorFor(context, chatMessage)!!) // Xtra5 custom
                     else -> itemView.setBackgroundResource(0)
                 }
             }
