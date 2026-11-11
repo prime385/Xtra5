@@ -1,6 +1,13 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.10.2 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Changed
+- Live stream cards: username and category are 16sp and bold; the stream title is 12sp in
+  regular weight (it looked bold before).
+========================================
 Xtra5 1.10.1 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
