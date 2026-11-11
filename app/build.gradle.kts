@@ -24,7 +24,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.github.andreyasadchy.xtra"
+        applicationId = "com.prime385.xtra5"
         minSdk = 24
         targetSdk = 37
         versionCode = 121
