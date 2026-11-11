@@ -7,8 +7,9 @@ Personal fork of official Xtra (crackededed/Xtra) with custom features. Work hap
 
 - **Always confirm the plan first.** Before writing or changing any code, describe the planned
   changes (what, where, and behaviour) and wait for the owner's explicit go-ahead.
-- Test builds go on a `wip-*` branch and are sent as an APK for testing. Only merge into
-  `custom-xtra5` (which publishes a release) after the owner confirms the build works.
+- Once a new version is built (and the plan was approved), publish it right away: merge it into
+  `custom-xtra5` (which publishes the release) without waiting for the owner to test. Also send
+  the APK and `xtra5-Custom-Changelog.txt`.
 - Never open pull requests to, or push to, the official Xtra repository.
 
 ## Keeping upstream merges clean
@@ -27,7 +28,7 @@ Personal fork of official Xtra (crackededed/Xtra) with custom features. Work hap
   existing entries: a `========================================` separator line, then
   `Xtra5 X.Y.Z (date)`, `Based on official Xtra <sha>`, then New / Changed / Fixed /
   Behind the scenes sections). Send the full history as `xtra5-Custom-Changelog.txt` (always this exact name, so the owner
-  can save over the same local file) alongside every test APK.
+  can save over the same local file) alongside every APK sent to the owner.
 - `.github/workflows/xtra5.yml` merges official Xtra daily, bumps FIX, builds and publishes a
   release with the APK and `xtra5-Custom-Changelog.txt` (full history; the release description is
   that version's entry; it writes the entry itself for automatic builds);
