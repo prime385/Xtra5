@@ -50,6 +50,18 @@ jobs:
           CUR=$(grep -oP 'val xtra5Version = "\K[0-9]+\.[0-9]+\.[0-9]+' app/build.gradle.kts)
           NEW=$(echo "$CUR" | awk -F. '{print $1"."$2"."$3+1}')
           sed -i "s/val xtra5Version = \"$CUR\"/val xtra5Version = \"$NEW\"/" app/build.gradle.kts
+          # Add a changelog entry for this automatic build, below the file's title line
+          {
+            echo "Xtra5 $NEW ($(date -u +%Y-%m-%d))"
+            echo "Based on official Xtra $(git rev-parse --short=7 refs/official/master)"
+            echo
+            echo "Official Xtra changes"
+            head -n 50 upstream-changes.txt
+            echo
+          } > entry.txt
+          { head -n 2 XTRA5_CHANGELOG.txt; cat entry.txt; tail -n +3 XTRA5_CHANGELOG.txt; } > changelog.new
+          mv changelog.new XTRA5_CHANGELOG.txt
+          rm entry.txt
           git commit -am "Xtra5 $NEW: official Xtra updates"
         fi
         VERSION=$(grep -oP 'val xtra5Version = "\K[0-9]+\.[0-9]+\.[0-9]+' app/build.gradle.kts)
@@ -91,13 +103,14 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         VERSION: ${{ steps.merge.outputs.version }}
       run: |
-        {
-          echo "Xtra5 $VERSION, based on official Xtra $(git log -1 --format=%h refs/official/master)"
-          if [ -s upstream-changes.txt ]; then
-            echo
-            echo "Official Xtra changes in this build:"
-            head -n 50 upstream-changes.txt
-          fi
-        } > notes.txt
-        gh release create --repo "$GITHUB_REPOSITORY" "xtra5-v$VERSION" "Xtra5-$VERSION.apk" \
-          --target "$(git rev-parse HEAD)" --title "Xtra5 $VERSION" --notes-file notes.txt --latest=true
+        # This version's section of XTRA5_CHANGELOG.txt, published next to the APK
+        awk -v v="$VERSION" '
+          /^Xtra5 [0-9]+\.[0-9]+\.[0-9]+ \(/ { found = ($2 == v) }
+          found
+        ' XTRA5_CHANGELOG.txt | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' > "Xtra5-$VERSION-changelog.txt"
+        if [ ! -s "Xtra5-$VERSION-changelog.txt" ]; then
+          echo "::warning::No XTRA5_CHANGELOG.txt entry for $VERSION"
+          echo "Xtra5 $VERSION, based on official Xtra $(git rev-parse --short=7 refs/official/master)" > "Xtra5-$VERSION-changelog.txt"
+        fi
+        gh release create --repo "$GITHUB_REPOSITORY" "xtra5-v$VERSION" "Xtra5-$VERSION.apk" "Xtra5-$VERSION-changelog.txt" \
+          --target "$(git rev-parse HEAD)" --title "Xtra5 $VERSION" --notes-file "Xtra5-$VERSION-changelog.txt" --latest=true

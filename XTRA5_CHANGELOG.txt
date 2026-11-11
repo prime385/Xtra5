@@ -1,0 +1,63 @@
+Xtra5 changelog (newest first)
+
+Xtra5 1.6.0 (2026-11-11)
+Based on official Xtra 0ab697d
+
+New
+- TV mode shortcuts for remotes, keyboards and controllers (Settings > Player > TV mode shortcuts). Off by default.
+- With the player controls hidden: Left/Right jump back/forward by a fixed step (5-60 seconds, slider). Not on live streams.
+- Up holds the seek bar like a finger on the marker: Left/Right move it by a percentage of the video length (1-10%, slider), OK jumps there, Back or 6 seconds without input cancels.
+- Down opens the Chapters menu on VODs that have chapters.
+- Holding a button counts as a single press.
+
+Xtra5 1.5.0 (2026-11-11)
+Based on official Xtra 0ab697d
+
+New
+- Highlight color picker now has a color wheel.
+- Hex field that shows the current color and moves the wheel when you type a code (#RRGGBB, or #AARRGGBB to include opacity).
+
+Changed
+- Brightness and opacity sliders under the wheel; preset colors moved to a scrollable row.
+
+Xtra5 1.4.0 (2026-11-11)
+Based on official Xtra 0ab697d
+
+New
+- Highlighted users list: add users, tap to change their color, remove with the X.
+- Color picker with preset colors, sliders and a live chat preview.
+- Default highlight color shows its color swatch in Settings.
+
+Xtra5 1.3.0 (2026-11-11)
+Based on official Xtra 0ab697d
+
+New
+- Xtra5 builds are made automatically every day with the latest official Xtra changes, keeping all Xtra5 features.
+- The in-app updater installs new Xtra5 builds (checks daily; Settings > Update settings).
+
+Changed
+- Replaced the notify-only update dialog with the updater above. Official Xtra changelog stays in Settings.
+
+Xtra5 1.2.0 (2026-11-11)
+Based on official Xtra 0ab697d
+
+New
+- Official Xtra changelog in Settings, with changes not in this build marked NEW.
+- Notification when official Xtra has new changes.
+
+Changed
+- Built-in updater no longer installs official Xtra builds.
+
+Xtra5 1.1.0 (2026-11-11)
+Based on official Xtra 0ab697d
+
+New
+- User highlights: messages from chosen users get a colored background (Settings > Chat > User highlights).
+- Optional color per user.
+- Version numbering MAJOR.FEATURE.FIX.
+
+Xtra5 1.0.0 (2026-11-11)
+Based on official Xtra 0ab697d
+
+New
+- Renamed to Xtra5 with its own package ID (com.prime385.xtra5), so it installs alongside official Xtra.
