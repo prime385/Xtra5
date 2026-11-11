@@ -103,7 +103,8 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         VERSION: ${{ steps.merge.outputs.version }}
       run: |
-        # This version's section of XTRA5_CHANGELOG.txt, published next to the APK
+        # This version's section of XTRA5_CHANGELOG.txt is the release description;
+        # the full history is attached as xtra5-Custom-Changelog.txt (same name every release)
         awk -v v="$VERSION" '
           /^=+$/ { sep = $0; next }
           /^Xtra5 [0-9]+\.[0-9]+\.[0-9]+ \(/ { found = ($2 == v); if (found) print sep }
@@ -113,5 +114,6 @@ jobs:
           echo "::warning::No XTRA5_CHANGELOG.txt entry for $VERSION"
           echo "Xtra5 $VERSION, based on official Xtra $(git rev-parse --short=7 refs/official/master)" > "Xtra5-$VERSION-changelog.txt"
         fi
-        gh release create --repo "$GITHUB_REPOSITORY" "xtra5-v$VERSION" "Xtra5-$VERSION.apk" "Xtra5-$VERSION-changelog.txt" \
+        cp XTRA5_CHANGELOG.txt xtra5-Custom-Changelog.txt
+        gh release create --repo "$GITHUB_REPOSITORY" "xtra5-v$VERSION" "Xtra5-$VERSION.apk" xtra5-Custom-Changelog.txt \
           --target "$(git rev-parse HEAD)" --title "Xtra5 $VERSION" --notes-file "Xtra5-$VERSION-changelog.txt" --latest=true

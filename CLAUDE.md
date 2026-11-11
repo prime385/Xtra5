@@ -26,7 +26,9 @@ Personal fork of official Xtra (crackededed/Xtra) with custom features. Work hap
 - Every new version needs an entry at the top of `XTRA5_CHANGELOG.txt` (same format as the
   existing entries: a `========================================` separator line, then
   `Xtra5 X.Y.Z (date)`, `Based on official Xtra <sha>`, then New / Changed / Fixed /
-  Behind the scenes sections). Send `Xtra5-X.Y.Z-changelog.txt` (that entry) alongside every test APK.
+  Behind the scenes sections). Send the full history as `xtra5-Custom-Changelog.txt` (always this exact name, so the owner
+  can save over the same local file) alongside every test APK.
 - `.github/workflows/xtra5.yml` merges official Xtra daily, bumps FIX, builds and publishes a
-  release with the APK and its changelog .txt (it writes the entry itself for automatic builds);
+  release with the APK and `xtra5-Custom-Changelog.txt` (full history; the release description is
+  that version's entry; it writes the entry itself for automatic builds);
   the in-app updater installs releases from this repo.
