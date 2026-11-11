@@ -15,11 +15,12 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.github.andreyasadchy.xtra.R
+import com.github.andreyasadchy.xtra.ui.common.Scrollable
 
 /**
  * Xtra5 custom: a refresh button in the top bar, between search and the ⋮ menu, on every screen
  * that has the search button. Pressing it reloads every loaded section (tab) of that screen, the
- * same as pulling down to refresh. Sections not opened yet load fresh when first opened.
+ * same as pulling down to refresh, and scrolls the current section to the top. Sections not opened yet load fresh when first opened.
  *
  * Kept in its own package so upstream Xtra updates can be merged without conflicts.
  * Started from UpstreamUpdates.onMainActivityCreate (no extra upstream hook).
@@ -67,6 +68,20 @@ object RefreshButton {
             fragment.childFragmentManager.fragments.forEach { visit(it) }
         }
         visit(screen)
+        scrollToTop(screen)
+    }
+
+    /** Scrolls the current section to the top, like the scroll-to-top button. */
+    private fun scrollToTop(screen: Fragment) {
+        val scrollable = screen as? Scrollable
+        if (scrollable != null) {
+            scrollable.scrollToTop()
+            return
+        }
+        // Fallback for screens without scrollToTop(): scroll the lists that are on screen.
+        screen.view?.let { view ->
+            findRecyclerViews(view).filter { it.isShown }.forEach { it.scrollToPosition(0) }
+        }
     }
 
     private fun refresh(adapter: RecyclerView.Adapter<*>?, seen: MutableSet<RecyclerView.Adapter<*>>) {

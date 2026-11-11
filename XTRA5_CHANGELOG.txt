@@ -1,6 +1,14 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.18.1 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Changed
+- Refresh all (the top-bar refresh button, or holding OK with no full-size video) also scrolls
+  the current section back to the top, like the scroll-to-top button. Other tabs keep their
+  position and reload when you switch to them.
+========================================
 Xtra5 1.18.0 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
