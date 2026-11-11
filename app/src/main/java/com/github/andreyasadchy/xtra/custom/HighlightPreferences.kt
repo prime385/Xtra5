@@ -19,12 +19,14 @@ import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.Keep
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.edit
 import androidx.preference.Preference
 import com.github.andreyasadchy.xtra.util.getAlertDialogBuilder
 import com.github.andreyasadchy.xtra.util.prefs
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.slider.Slider
 
 /**
@@ -219,6 +221,35 @@ object HighlightDialogs {
 
         fun current() = Color.HSVToColor(alpha, hsv)
         /** Pushes the current color to every control except [source], which the user is touching. */
+        // Saved colors (color + opacity), shared by every picker.
+        val savedRow = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+        val savedLabel = TextView(ctx).apply {
+            text = "Saved (long-press to remove)"
+            setPadding(dp(ctx, 4), dp(ctx, 8), 0, 0)
+        }
+        val savedScroll = HorizontalScrollView(ctx).apply {
+            isHorizontalScrollBarEnabled = false
+            addView(savedRow)
+        }
+        lateinit var applySaved: (Int) -> Unit
+        lateinit var removeSaved: (Int) -> Unit
+        fun renderSaved(current: Int) {
+            val saved = getSavedColors(ctx)
+            savedLabel.visibility = if (saved.isEmpty()) View.GONE else View.VISIBLE
+            savedScroll.visibility = savedLabel.visibility
+            savedRow.removeAllViews()
+            saved.forEach { color ->
+                savedRow.addView(View(ctx).apply {
+                    background = swatch(ctx, color, 32, selected = color == current)
+                    contentDescription = UserHighlights.toHex(color)
+                    setOnClickListener { applySaved(color) }
+                    setOnLongClickListener { removeSaved(color); true }
+                }, LinearLayout.LayoutParams(dp(ctx, 32), dp(ctx, 32)).apply {
+                    setMargins(dp(ctx, 4), dp(ctx, 4), dp(ctx, 4), dp(ctx, 4))
+                })
+            }
+        }
+
         fun refresh(source: Any?) {
             updating = true
             val color = current()
@@ -226,13 +257,30 @@ object HighlightDialogs {
             val rgb = color and 0xFFFFFF
             swatches.forEach { (view, c) -> view.background = swatch(ctx, c or (0xFF shl 24), 32, selected = c == rgb) }
             wheel.setColor(hsv[0], hsv[1], hsv[2])
-            if (source !== bright) bright.value = (hsv[2] * 100).coerceIn(0f, 100f)
-            if (source !== opacity) opacity.value = (alpha * 100f / 255f).coerceIn(0f, 100f)
+            if (source !== bright) bright.value = Math.round(hsv[2] * 100).toFloat().coerceIn(0f, 100f)
+            if (source !== opacity) opacity.value = Math.round(alpha * 100f / 255f).toFloat().coerceIn(0f, 100f)
+            renderSaved(color)
             if (source !== hex) {
                 hex.setText(String.format("#%06X", rgb))
                 hex.setSelection(hex.text.length)
             }
             updating = false
+        }
+
+        applySaved = { color ->
+            Color.colorToHSV(color or (0xFF shl 24), hsv)
+            alpha = Color.alpha(color)
+            refresh(null)
+        }
+        removeSaved = { color ->
+            context.getAlertDialogBuilder()
+                .setMessage("Remove this saved color?")
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    setSavedColors(ctx, getSavedColors(ctx).filter { it != color })
+                    refresh(null)
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
         }
 
         wheel.onChanged = { h, sat ->
@@ -280,6 +328,8 @@ object HighlightDialogs {
             val s = Slider(ctx).apply {
                 valueFrom = 0f
                 valueTo = 100f
+                stepSize = 1f // whole numbers
+                setLabelFormatter { "${it.toInt()}%" }
             }
             s.addOnChangeListener { _, value, fromUser ->
                 if (fromUser && !updating) {
@@ -300,6 +350,15 @@ object HighlightDialogs {
                 setPadding(dp(ctx, 4), 0, dp(ctx, 12), 0)
             })
             addView(hex, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            addView(MaterialButton(ctx, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+                text = "Save color"
+                setOnClickListener {
+                    val color = current()
+                    setSavedColors(ctx, (listOf(color) + getSavedColors(ctx).filter { it != color }).take(MAX_SAVED))
+                    refresh(null)
+                    Toast.makeText(ctx, "Color saved", Toast.LENGTH_SHORT).show()
+                }
+            }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { marginStart = dp(ctx, 8) })
         }
         val metrics = ctx.resources.displayMetrics
         val landscape = metrics.widthPixels > metrics.heightPixels
@@ -307,7 +366,7 @@ object HighlightDialogs {
         wheel.maxSizePx = if (landscape) {
             (metrics.heightPixels - dp(ctx, 190)).coerceIn(dp(ctx, 140), dp(ctx, 260))
         } else {
-            (metrics.heightPixels - dp(ctx, 470)).coerceIn(dp(ctx, 120), dp(ctx, 240))
+            (metrics.heightPixels - dp(ctx, 530)).coerceIn(dp(ctx, 120), dp(ctx, 240))
         }
         fun matchWidth(top: Int = 0) = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = top }
         val presetsLabel = TextView(ctx).apply {
@@ -326,6 +385,8 @@ object HighlightDialogs {
             addView(bright, matchWidth())
             addView(opacityLabel)
             addView(opacity, matchWidth())
+            addView(savedLabel)
+            addView(savedScroll)
             addView(presetsLabel)
             addView(presets)
         }
@@ -359,6 +420,16 @@ object HighlightDialogs {
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
         }
+    }
+
+    private const val PREF_SAVED_COLORS = "xtra5_saved_colors"
+    private const val MAX_SAVED = 12
+
+    private fun getSavedColors(context: Context): List<Int> =
+        context.prefs().getString(PREF_SAVED_COLORS, null)?.split(',')?.mapNotNull { UserHighlights.parseColor(it) }?.distinct() ?: emptyList()
+
+    private fun setSavedColors(context: Context, colors: List<Int>) {
+        context.prefs().edit { putString(PREF_SAVED_COLORS, colors.joinToString(",") { UserHighlights.toHex(it) }) }
     }
 
     fun swatch(context: Context, color: Int, sizeDp: Int, selected: Boolean = false): GradientDrawable =

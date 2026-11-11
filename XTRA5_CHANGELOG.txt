@@ -1,6 +1,18 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.13.0 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Saved colors in the highlight color picker: "Save color" (next to the hex field) saves the
+  current color with its opacity. Saved colors show as circles in a Saved row above the presets,
+  newest first; tap one to apply its color and opacity, long-press to remove it. Up to 12, no
+  duplicates, shared by every picker.
+
+Changed
+- Brightness and opacity sliders move in whole numbers (0-100%) and show whole-number labels.
+========================================
 Xtra5 1.12.0 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
