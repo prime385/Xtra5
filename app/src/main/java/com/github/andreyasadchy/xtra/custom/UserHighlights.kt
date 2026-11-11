@@ -49,19 +49,33 @@ object UserHighlights {
     }
 
     internal fun parse(source: String?, defaultColor: Int): Map<String, Int> {
-        if (source.isNullOrBlank()) return emptyMap()
         val result = HashMap<String, Int>()
+        parseEntries(source).forEach { (user, color) -> result[user.lowercase()] = color ?: defaultColor }
+        return result
+    }
+
+    /** Entries in saved order: username (as typed) to its own color, or null for the default color. */
+    fun parseEntries(source: String?): List<Pair<String, Int?>> {
+        if (source.isNullOrBlank()) return emptyList()
+        val result = ArrayList<Pair<String, Int?>>()
         source.split(',', ' ', '\n', '\r', '\t', ';').forEach { raw ->
             val entry = raw.trim().removePrefix("@")
             if (entry.isEmpty()) return@forEach
             val hash = entry.indexOf('#')
-            val user = (if (hash >= 0) entry.substring(0, hash) else entry).trim().lowercase()
-            if (user.isEmpty()) return@forEach
-            val color = if (hash >= 0) parseColor(entry.substring(hash)) ?: defaultColor else defaultColor
-            result[user] = color
+            val user = (if (hash >= 0) entry.substring(0, hash) else entry).trim()
+            if (user.isEmpty() || result.any { it.first.equals(user, true) }) return@forEach
+            result.add(user to if (hash >= 0) parseColor(entry.substring(hash)) else null)
         }
         return result
     }
+
+    fun serializeEntries(entries: List<Pair<String, Int?>>): String =
+        entries.joinToString("\n") { (user, color) -> if (color != null) "$user${toHex(color)}" else user }
+
+    fun toHex(color: Int): String = String.format("#%08X", color)
+
+    fun getDefaultColor(context: Context): Int =
+        parseColor(context.prefs().getString(PREF_COLOR, null)) ?: parseColor(DEFAULT_COLOR)!!
 
     internal fun parseColor(value: String?): Int? {
         val hex = value?.trim()?.removePrefix("#") ?: return null

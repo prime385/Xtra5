@@ -363,19 +363,15 @@
         android:title="@string/xtra5_highlights"
         app:iconSpaceReserved="false">
 
-        <EditTextPreference
+        <com.github.andreyasadchy.xtra.custom.HighlightUsersPreference
             android:key="xtra5_highlight_users"
             android:title="@string/xtra5_highlight_users"
-            android:summary="@string/xtra5_highlight_users_summary"
             app:iconSpaceReserved="false"
             app:singleLineTitle="false" />
 
-        <EditTextPreference
-            android:defaultValue="#2196F3"
+        <com.github.andreyasadchy.xtra.custom.HighlightColorPreference
             android:key="xtra5_highlight_color"
             android:title="@string/xtra5_highlight_color"
-            android:summary="@string/xtra5_highlight_color_summary"
-            app:iconSpaceReserved="false"
             app:singleLineTitle="false" />
 
     </PreferenceCategory>

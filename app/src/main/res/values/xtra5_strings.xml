@@ -3,7 +3,5 @@
 <resources>
     <string name="xtra5_highlights" translatable="false">User highlights (Xtra5)</string>
     <string name="xtra5_highlight_users" translatable="false">Highlighted users</string>
-    <string name="xtra5_highlight_users_summary" translatable="false">One username per line. Optional color per user: name#FF9800</string>
     <string name="xtra5_highlight_color" translatable="false">Default highlight color</string>
-    <string name="xtra5_highlight_color_summary" translatable="false">Hex color, e.g. #2196F3 (or #AARRGGBB to set transparency)</string>
 </resources>
