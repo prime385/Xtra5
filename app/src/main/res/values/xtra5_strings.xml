@@ -31,6 +31,7 @@
         <item>condensed_medium</item>
     </string-array>
     <item name="xtra5_reply_row" type="id" />
+    <item name="xtra5_narrow_cards" type="id" />
     <string name="xtra5_stream_cards" translatable="false">Stream cards (Xtra5)</string>
     <string name="xtra5_card_name_size" translatable="false">Streamer name size (sp)</string>
     <string name="xtra5_card_category_size" translatable="false">Category size (sp)</string>

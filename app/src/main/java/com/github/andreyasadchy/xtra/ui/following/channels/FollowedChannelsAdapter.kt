@@ -47,6 +47,7 @@ class FollowedChannelsAdapter(
         private val fragment: Fragment,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: User?) {
+            com.github.andreyasadchy.xtra.custom.NarrowCards.channelCard(binding) // Xtra5 custom
             with(binding) {
                 if (item != null) {
                     val context = fragment.requireContext()

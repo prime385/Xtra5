@@ -84,6 +84,7 @@ class BookmarksAdapter(
         private val fragment: Fragment,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: Bookmark?) {
+            com.github.andreyasadchy.xtra.custom.NarrowCards.videoCard(binding) // Xtra5 custom
             with(binding) {
                 if (item != null) {
                     val context = fragment.requireContext()

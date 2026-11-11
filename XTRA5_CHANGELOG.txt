@@ -1,6 +1,18 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.15.0 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Video and channel cards are readable when narrow (many columns, e.g. 6 on a TV), instead of
+  squashing the text into a column a few characters wide. Below about 260dp wide:
+  - Video cards (also clips and bookmarks): avatar on the left and the options button on the
+    right share one row, with the title, streamer and category below at full width.
+  - Channel cards (Following > Channels): avatar on top, then the name, info and Account /
+    Local labels stacked below at full width.
+  Wider cards keep the original layout.
+========================================
 Xtra5 1.14.0 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
