@@ -34,6 +34,7 @@ import java.lang.ref.WeakReference
  * Holding a button counts as one press.
  * Long-press Back (player full-size or minimized): close the player, like swiping it away.
  * Back with the player minimized: close the player, like swiping it away.
+ * Long-press OK with no video or the player minimized: refresh every section of the screen.
  * Long-press OK (live stream, controls hidden): reload the stream, like Restart player.
  *
  * Kept in its own package so upstream Xtra updates can be merged without conflicts.
@@ -104,14 +105,28 @@ object TvShortcuts {
         }
         if (isBack && !scrubbing) return consumed.contains(keyCode) // short press: normal Back
 
-        // Long-press OK on a live stream (controls hidden): reload it, like Restart player.
+        // Long-press OK:
+        //   live stream full-size (controls hidden): reload it, like Restart player
+        //   no video, or the video minimized: refresh every section of the current screen
         if (keyCode in okKeys && !scrubbing) {
-            if (event.repeatCount == 0) return false // short press: normal OK
+            if (event.repeatCount == 0) {
+                // Holding OK refreshes here, so stop the focused item's own long-press
+                // (e.g. a video card's Download dialog). A short press still clicks it.
+                if (canRefreshScreen(activity, playerFragment)) {
+                    handler.post { activity.currentFocus?.cancelLongPress() }
+                }
+                return false // short press: normal OK
+            }
             if (consumed.contains(keyCode)) return true
             if (!(event.isLongPress || event.repeatCount >= LONG_PRESS_REPEATS)) return false
-            if (reloadStream(activity, playerFragment)) {
+            val handled = reloadStream(activity, playerFragment) ||
+                (canRefreshScreen(activity, playerFragment) && RefreshButton.refreshCurrentScreen(activity))
+            if (handled) {
                 consumed.add(keyCode)
-                activity.currentFocus?.isPressed = false // its key up is swallowed
+                activity.currentFocus?.let {
+                    it.cancelLongPress()
+                    it.isPressed = false // its key up is swallowed
+                }
                 return true
             }
             return false
@@ -182,6 +197,14 @@ object TvShortcuts {
         }
         if (handled) consumed.add(keyCode)
         return handled
+    }
+
+    /** True when there is no full-size video: no player, or the player is minimized. */
+    private fun canRefreshScreen(activity: Activity, playerFragment: Fragment?): Boolean {
+        if (!activity.prefs().getBoolean(PREF_ENABLED, false)) return false
+        if (activity.currentFocus is EditText) return false // typing, e.g. in search
+        val player = playerFragment as? PlayerFragment
+        return player == null || !player.isAdded || !player.xtra5PlayerState().isMaximized
     }
 
     /** Restarts the player of a live stream (same as Restart player in the player menu). */

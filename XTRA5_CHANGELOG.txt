@@ -9,6 +9,10 @@ New
   button (Following, Popular, Games, Saved, category pages). One press reloads every loaded
   section of that screen (e.g. Live, Videos and Channels), the same as pulling down to refresh.
   Sections not opened yet load fresh when first opened. Works with the D-pad.
+- TV mode shortcut: holding OK with no video open, or with the video minimized, does the same
+  refresh of every loaded section ("Refreshing" message). This replaces holding OK on a video
+  or clip card to open Download in that state; use the card's ⋮ menu to download instead.
+  With a live stream full-size, holding OK still reloads the stream.
 ========================================
 Xtra5 1.17.0 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
