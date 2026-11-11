@@ -24,8 +24,9 @@ Personal fork of official Xtra (crackededed/Xtra) with custom features. Work hap
 - Version is `MAJOR.FEATURE.FIX`, set by `val xtra5Version` at the end of `app/build.gradle.kts`
   (versionCode = MAJOR*10000 + FEATURE*100 + FIX). New features bump FEATURE.
 - Every new version needs an entry at the top of `XTRA5_CHANGELOG.txt` (same format as the
-  existing entries: `Xtra5 X.Y.Z (date)`, `Based on official Xtra <sha>`, then New / Changed /
-  Fixed sections). Send `Xtra5-X.Y.Z-changelog.txt` (that entry) alongside every test APK.
+  existing entries: a `========================================` separator line, then
+  `Xtra5 X.Y.Z (date)`, `Based on official Xtra <sha>`, then New / Changed / Fixed /
+  Behind the scenes sections). Send `Xtra5-X.Y.Z-changelog.txt` (that entry) alongside every test APK.
 - `.github/workflows/xtra5.yml` merges official Xtra daily, bumps FIX, builds and publishes a
   release with the APK and its changelog .txt (it writes the entry itself for automatic builds);
   the in-app updater installs releases from this repo.

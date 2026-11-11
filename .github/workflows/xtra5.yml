@@ -52,12 +52,12 @@ jobs:
           sed -i "s/val xtra5Version = \"$CUR\"/val xtra5Version = \"$NEW\"/" app/build.gradle.kts
           # Add a changelog entry for this automatic build, below the file's title line
           {
+            echo "========================================"
             echo "Xtra5 $NEW ($(date -u +%Y-%m-%d))"
             echo "Based on official Xtra $(git rev-parse --short=7 refs/official/master)"
             echo
             echo "Official Xtra changes"
             head -n 50 upstream-changes.txt
-            echo
           } > entry.txt
           { head -n 2 XTRA5_CHANGELOG.txt; cat entry.txt; tail -n +3 XTRA5_CHANGELOG.txt; } > changelog.new
           mv changelog.new XTRA5_CHANGELOG.txt
@@ -105,7 +105,8 @@ jobs:
       run: |
         # This version's section of XTRA5_CHANGELOG.txt, published next to the APK
         awk -v v="$VERSION" '
-          /^Xtra5 [0-9]+\.[0-9]+\.[0-9]+ \(/ { found = ($2 == v) }
+          /^=+$/ { sep = $0; next }
+          /^Xtra5 [0-9]+\.[0-9]+\.[0-9]+ \(/ { found = ($2 == v); if (found) print sep }
           found
         ' XTRA5_CHANGELOG.txt | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' > "Xtra5-$VERSION-changelog.txt"
         if [ ! -s "Xtra5-$VERSION-changelog.txt" ]; then

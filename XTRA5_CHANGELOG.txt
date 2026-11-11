@@ -1,63 +1,111 @@
 Xtra5 changelog (newest first)
 
+========================================
 Xtra5 1.6.0 (2026-11-11)
-Based on official Xtra 0ab697d
+Based on official Xtra 0ab697d (Xtra 2.60.10)
 
 New
-- TV mode shortcuts for remotes, keyboards and controllers (Settings > Player > TV mode shortcuts). Off by default.
-- With the player controls hidden: Left/Right jump back/forward by a fixed step (5-60 seconds, slider). Not on live streams.
-- Up holds the seek bar like a finger on the marker: Left/Right move it by a percentage of the video length (1-10%, slider), OK jumps there, Back or 6 seconds without input cancels.
-- Down opens the Chapters menu on VODs that have chapters.
-- Holding a button counts as a single press.
+- TV mode shortcuts for TV remotes, Bluetooth remotes, keyboards and game controllers,
+  on TV boxes, phones and tablets (Settings > Player > TV mode shortcuts). Off by default.
+- Shortcuts work in the full-size player while the on-screen controls are hidden.
+  With the controls showing, the D-pad moves between buttons as normal.
+- Left / Right: jump back / forward by a fixed Seek step (5-60 seconds, slider, default 10).
+  Each press jumps once; holding the button counts as one press. Not on live streams.
+- Up: shows the controls and holds the seek bar at the current position, like a finger on the
+  marker. Left / Right then move the marker by Seek bar jump (1-10% of the video length,
+  slider, default 5%) without seeking yet. OK jumps to the marker. Back cancels, and so does
+  6 seconds without a button press. On live streams, Up just shows the controls.
+- Down: opens the Chapters menu on VODs that have chapters.
+- Arrow keys still work normally while typing in chat or with the player minimized.
 
+Behind the scenes
+- Changelog: this file holds the full history, and every release includes its entry as
+  Xtra5-X.Y.Z-changelog.txt next to the APK and as the release description.
+- Automatic builds write their own entry listing the official Xtra changes they include.
+- CLAUDE.md added with the project's working rules: confirm plans before coding, test builds
+  on wip-* branches, changelog entry for every version.
+========================================
 Xtra5 1.5.0 (2026-11-11)
-Based on official Xtra 0ab697d
+Based on official Xtra 0ab697d (Xtra 2.60.10)
 
 New
-- Highlight color picker now has a color wheel.
-- Hex field that shows the current color and moves the wheel when you type a code (#RRGGBB, or #AARRGGBB to include opacity).
+- Color wheel in the highlight color picker: around the circle picks the hue, distance from
+  the center picks how strong the color is.
+- Hex field that always shows the current color (#RRGGBB) and moves the wheel when you type
+  a code. #AARRGGBB also sets the opacity.
 
 Changed
-- Brightness and opacity sliders under the wheel; preset colors moved to a scrollable row.
-
+- Brightness and opacity sliders under the wheel. The wheel darkens with brightness so it
+  matches the result.
+- Preset colors moved to a scrollable row; live chat preview kept at the top.
+========================================
 Xtra5 1.4.0 (2026-11-11)
-Based on official Xtra 0ab697d
+Based on official Xtra 0ab697d (Xtra 2.60.10)
 
 New
-- Highlighted users list: add users, tap to change their color, remove with the X.
-- Color picker with preset colors, sliders and a live chat preview.
-- Default highlight color shows its color swatch in Settings.
+- Highlighted users list (Settings > Chat > User highlights): add users, tap a user to change
+  their color, remove with the X. Replaces typing names and hex codes into a text box.
+- Color picker with preset colors, hue / saturation / brightness / opacity sliders and a
+  live chat preview.
+- Default highlight color (used for newly added users) shows its color swatch in Settings.
 
+Changed
+- Existing highlighted users and colors carried over automatically.
+========================================
 Xtra5 1.3.0 (2026-11-11)
-Based on official Xtra 0ab697d
+Based on official Xtra 0ab697d (Xtra 2.60.10)
 
 New
-- Xtra5 builds are made automatically every day with the latest official Xtra changes, keeping all Xtra5 features.
-- The in-app updater installs new Xtra5 builds (checks daily; Settings > Update settings).
+- Xtra5 keeps up with official Xtra automatically: a GitHub workflow checks once a day, merges
+  any official changes, bumps the FIX number, builds and publishes a new Xtra5 release with
+  all custom features included.
+- The in-app updater installs new Xtra5 builds: "Update available" > Yes > install. Checks
+  daily when the app opens (Settings > Update settings).
 
 Changed
-- Replaced the notify-only update dialog with the updater above. Official Xtra changelog stays in Settings.
+- Replaced 1.2.0's notify-only dialog with the updater. Official Xtra changelog stays in Settings.
 
+Fixed
+- First automatic build failed to publish: the release step tried to target the official Xtra
+  repository (GitHub refused it; nothing was created there). The workflow now only ever writes
+  to the Xtra5 repository. Fixed before 1.3.0 was released.
+
+Behind the scenes
+- Workflow never pushes to master, so official Xtra's own workflow never runs on this repo.
+========================================
 Xtra5 1.2.0 (2026-11-11)
-Based on official Xtra 0ab697d
+Based on official Xtra 0ab697d (Xtra 2.60.10)
 
 New
-- Official Xtra changelog in Settings, with changes not in this build marked NEW.
-- Notification when official Xtra has new changes.
+- Official Xtra changelog (Settings > Official Xtra changelog): the official app's 50 most
+  recent changes with dates; changes not in this build are marked NEW.
+- Notification when official Xtra has new changes (checked once a day), listing them, with
+  Open on GitHub / Later / Dismiss. Never downloads or installs anything.
 
 Changed
-- Built-in updater no longer installs official Xtra builds.
+- Built-in updater switched off and its Update settings hidden, so it can't install official
+  Xtra. "Check for updates" checks for official changes instead.
 
+Behind the scenes
+- Each build records the official Xtra commit it is based on, so "up to date" and NEW are exact.
+========================================
 Xtra5 1.1.0 (2026-11-11)
-Based on official Xtra 0ab697d
+Based on official Xtra 0ab697d (Xtra 2.60.10)
 
 New
-- User highlights: messages from chosen users get a colored background (Settings > Chat > User highlights).
-- Optional color per user.
-- Version numbering MAJOR.FEATURE.FIX.
+- User highlights: messages from chosen users get a colored background in live chat, VODs and
+  the message and reply popups (Settings > Chat > User highlights).
+- Optional color per user (typed as name#RRGGBB in this version), plus a default color.
+- Mentions of you, first-time chatters, rewards and notices keep their own colors.
 
+Behind the scenes
+- Version numbering changed to MAJOR.FEATURE.FIX (the first build used Xtra's 2.60.10).
+- Custom code kept in its own folder with small marked hooks, so official updates merge cleanly.
+========================================
 Xtra5 1.0.0 (2026-11-11)
-Based on official Xtra 0ab697d
+Based on official Xtra 0ab697d (Xtra 2.60.10)
 
 New
-- Renamed to Xtra5 with its own package ID (com.prime385.xtra5), so it installs alongside official Xtra.
+- Custom build of official Xtra, renamed "Xtra5" with its own package ID (com.prime385.xtra5),
+  so it installs alongside official Xtra instead of replacing it.
+- First build was numbered 2.60.10, matching the official version it was built from.
