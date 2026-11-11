@@ -1,6 +1,15 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.10.0 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Changed
+- Live stream cards (Following, Popular, category and search lists): under the thumbnail the
+  username comes first in bold, then the category, then the stream title, 2sp smaller than
+  before. Tags are no longer shown on stream cards. VOD and clip cards are unchanged, and so is
+  the compact stream list.
+========================================
 Xtra5 1.9.0 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
