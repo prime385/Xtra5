@@ -3,15 +3,19 @@ package com.github.andreyasadchy.xtra.custom
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.text.Editable
+import android.text.InputFilter
 import android.text.InputType
+import android.text.TextWatcher
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.GridLayout
+import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -193,84 +197,130 @@ object HighlightDialogs {
         val ctx = builder.context
         val hsv = FloatArray(3).also { Color.colorToHSV(initial, it) }
         var alpha = Color.alpha(initial)
+        var updating = false
 
         val preview = TextView(ctx).apply {
             text = "$previewName: Hello chat!"
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
             setPadding(dp(ctx, 12), dp(ctx, 10), dp(ctx, 12), dp(ctx, 10))
         }
+        val wheel = ColorWheelView(ctx)
         val swatches = ArrayList<Pair<View, Int>>()
-        val grid = GridLayout(ctx).apply {
-            columnCount = 6
-            useDefaultMargins = false
+        val swatchRow = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+        val hex = EditText(ctx).apply {
+            isSingleLine = true
+            typeface = Typeface.MONOSPACE
+            hint = "#RRGGBB"
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+            filters = arrayOf(InputFilter.LengthFilter(9))
         }
-        lateinit var hue: Slider
-        lateinit var sat: Slider
         lateinit var bright: Slider
         lateinit var opacity: Slider
-        var updatingSliders = false
+
         fun current() = Color.HSVToColor(alpha, hsv)
-        fun refresh(fromSlider: Boolean) {
+        /** Pushes the current color to every control except [source], which the user is touching. */
+        fun refresh(source: Any?) {
+            updating = true
             val color = current()
             preview.setBackgroundColor(color)
             val rgb = color and 0xFFFFFF
-            swatches.forEach { (view, c) -> view.background = swatch(ctx, Color.HSVToColor(255, FloatArray(3).also { Color.colorToHSV(c or (0xFF shl 24), it) }), 36, selected = c == rgb) }
-            if (!fromSlider) {
-                updatingSliders = true
-                hue.value = hsv[0].coerceIn(0f, 360f)
-                sat.value = (hsv[1] * 100).coerceIn(0f, 100f)
-                bright.value = (hsv[2] * 100).coerceIn(0f, 100f)
-                opacity.value = (alpha * 100f / 255f).coerceIn(0f, 100f)
-                updatingSliders = false
+            swatches.forEach { (view, c) -> view.background = swatch(ctx, c or (0xFF shl 24), 32, selected = c == rgb) }
+            wheel.setColor(hsv[0], hsv[1], hsv[2])
+            if (source !== bright) bright.value = (hsv[2] * 100).coerceIn(0f, 100f)
+            if (source !== opacity) opacity.value = (alpha * 100f / 255f).coerceIn(0f, 100f)
+            if (source !== hex) {
+                hex.setText(String.format("#%06X", rgb))
+                hex.setSelection(hex.text.length)
             }
+            updating = false
+        }
+
+        wheel.onChanged = { h, sat ->
+            hsv[0] = h
+            hsv[1] = sat
+            if (hsv[2] < 0.05f) hsv[2] = 1f // picking a color while fully dark would show nothing
+            refresh(wheel)
         }
         palette.forEach { rgb ->
             val view = View(ctx).apply {
-                contentDescription = UserHighlights.toHex(rgb or (0xFF shl 24))
+                contentDescription = String.format("#%06X", rgb)
                 setOnClickListener {
                     Color.colorToHSV(rgb or (0xFF shl 24), hsv)
-                    refresh(false)
+                    refresh(null)
                 }
             }
             swatches.add(view to rgb)
-            grid.addView(view, GridLayout.LayoutParams().apply {
-                width = dp(ctx, 36); height = dp(ctx, 36)
-                setMargins(dp(ctx, 5), dp(ctx, 5), dp(ctx, 5), dp(ctx, 5))
+            swatchRow.addView(view, LinearLayout.LayoutParams(dp(ctx, 32), dp(ctx, 32)).apply {
+                setMargins(dp(ctx, 4), dp(ctx, 4), dp(ctx, 4), dp(ctx, 4))
             })
         }
-        fun slider(label: String, max: Float, onChange: (Float) -> Unit): Pair<TextView, Slider> {
+        hex.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (updating) return
+                val value = s?.toString()?.trim()?.removePrefix("#") ?: return
+                val parsed = value.toLongOrNull(16) ?: return
+                when (value.length) {
+                    6 -> Color.colorToHSV((parsed.toInt()) or (0xFF shl 24), hsv)
+                    8 -> {
+                        alpha = (parsed shr 24).toInt() and 0xFF
+                        Color.colorToHSV(parsed.toInt() or (0xFF shl 24), hsv)
+                    }
+                    else -> return
+                }
+                refresh(hex)
+            }
+        })
+        fun slider(label: String, onChange: (Float) -> Unit): Pair<TextView, Slider> {
             val text = TextView(ctx).apply {
                 this.text = label
                 setPadding(dp(ctx, 4), dp(ctx, 8), 0, 0)
             }
             val s = Slider(ctx).apply {
                 valueFrom = 0f
-                valueTo = max
-                addOnChangeListener { _, value, fromUser ->
-                    if (fromUser && !updatingSliders) {
-                        onChange(value)
-                        refresh(true)
-                    }
+                valueTo = 100f
+            }
+            s.addOnChangeListener { _, value, fromUser ->
+                if (fromUser && !updating) {
+                    onChange(value)
+                    refresh(s)
                 }
             }
             return text to s
         }
-        val (hueLabel, h) = slider("Hue", 360f) { hsv[0] = it }; hue = h
-        val (satLabel, sa) = slider("Saturation", 100f) { hsv[1] = it / 100f }; sat = sa
-        val (brightLabel, b) = slider("Brightness", 100f) { hsv[2] = it / 100f }; bright = b
-        val (opacityLabel, o) = slider("Opacity (lower keeps text readable)", 100f) { alpha = (it * 255f / 100f).toInt() }; opacity = o
+        val (brightLabel, b) = slider("Brightness") { hsv[2] = it / 100f }; bright = b
+        val (opacityLabel, o) = slider("Opacity (lower keeps text readable)") { alpha = (it * 255f / 100f).toInt() }; opacity = o
 
+        val hexRow = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            addView(TextView(ctx).apply {
+                text = "Hex"
+                setPadding(dp(ctx, 4), 0, dp(ctx, 12), 0)
+            })
+            addView(hex, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        }
         val content = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(ctx, 20), dp(ctx, 8), dp(ctx, 20), 0)
             addView(preview, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = dp(ctx, 12) })
-            addView(grid, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.CENTER_HORIZONTAL })
-            listOf(hueLabel to hue, satLabel to sat, brightLabel to bright, opacityLabel to opacity).forEach { (label, s) ->
-                addView(label)
-                addView(s, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-            }
+            addView(wheel, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.CENTER_HORIZONTAL })
+            addView(hexRow, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(ctx, 8) })
+            addView(brightLabel)
+            addView(bright, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            addView(opacityLabel)
+            addView(opacity, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            addView(TextView(ctx).apply {
+                text = "Presets"
+                setPadding(dp(ctx, 4), dp(ctx, 8), 0, 0)
+            })
+            addView(HorizontalScrollView(ctx).apply {
+                isHorizontalScrollBarEnabled = false
+                addView(swatchRow)
+            })
         }
-        refresh(false)
+        refresh(null)
         builder.setTitle(title)
             .setView(ScrollView(ctx).apply { addView(content) })
             .setPositiveButton(android.R.string.ok) { _, _ -> onPicked(current()) }
