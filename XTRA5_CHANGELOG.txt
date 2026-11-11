@@ -1,6 +1,18 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.11.0 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- TV mode shortcut: hold OK (about half a second) on a live stream with the player controls
+  hidden to reload the stream, the same as Restart player in the player menu. A short
+  "Reloading stream" message confirms it. A short OK press is unchanged, and holding OK does
+  nothing new on VODs and clips or while the controls are showing.
+
+Changed
+- TV mode shortcuts description in Settings now mentions hold OK and hold Back.
+========================================
 Xtra5 1.10.2 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

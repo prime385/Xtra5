@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.media3.ui.DefaultTimeBar
@@ -32,6 +33,7 @@ import java.lang.ref.WeakReference
  * After letting go, while the controls are still showing, Left / Right hold the seek bar again.
  * Holding a button counts as one press.
  * Long-press Back (player full-size or minimized): close the player, like swiping it away.
+ * Long-press OK (live stream, controls hidden): reload the stream, like Restart player.
  *
  * Kept in its own package so upstream Xtra updates can be merged without conflicts.
  * Upstream hooks: MainActivity.dispatchKeyEvent and PlayerFragment.xtra5PlayerState.
@@ -76,7 +78,7 @@ object TvShortcuts {
         val keyCode = event.keyCode
         val scrubbing = scrub != null
         val isBack = keyCode == KeyEvent.KEYCODE_BACK
-        if (keyCode !in dpadKeys && !isBack && !(scrubbing && keyCode in okKeys)) {
+        if (keyCode !in dpadKeys && !isBack && keyCode !in okKeys) {
             return if (event.action == KeyEvent.ACTION_UP) consumed.remove(keyCode) else false
         }
         if (event.action == KeyEvent.ACTION_UP) {
@@ -94,6 +96,19 @@ object TvShortcuts {
             }
         }
         if (isBack && !scrubbing) return consumed.contains(keyCode) // short press: normal Back
+
+        // Long-press OK on a live stream (controls hidden): reload it, like Restart player.
+        if (keyCode in okKeys && !scrubbing) {
+            if (event.repeatCount == 0) return false // short press: normal OK
+            if (consumed.contains(keyCode)) return true
+            if (!(event.isLongPress || event.repeatCount >= LONG_PRESS_REPEATS)) return false
+            if (reloadStream(activity, playerFragment)) {
+                consumed.add(keyCode)
+                activity.currentFocus?.isPressed = false // its key up is swallowed
+                return true
+            }
+            return false
+        }
 
         if (event.repeatCount > 0) return consumed.contains(keyCode) // holding = a single press
 
@@ -160,6 +175,20 @@ object TvShortcuts {
         }
         if (handled) consumed.add(keyCode)
         return handled
+    }
+
+    /** Restarts the player of a live stream (same as Restart player in the player menu). */
+    private fun reloadStream(activity: Activity, playerFragment: Fragment?): Boolean {
+        if (!activity.prefs().getBoolean(PREF_ENABLED, false)) return false
+        val player = playerFragment as? PlayerFragment ?: return false
+        if (!player.isAdded || !player.isResumed) return false
+        val state = player.xtra5PlayerState()
+        if (!state.isMaximized || !state.isLiveStream) return false
+        if (activity.currentFocus is EditText) return false
+        if (player.view?.findViewById<View>(R.id.playerControls)?.isVisible == true) return false
+        player.restartPlayer()
+        Toast.makeText(activity, "Reloading stream", Toast.LENGTH_SHORT).show()
+        return true
     }
 
     /** Closes the player the same way swiping it away does. */
