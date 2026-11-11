@@ -1,6 +1,14 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.16.0 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- TV mode shortcut: pressing Back while the player is minimized closes it completely, like
+  swiping it away. So Back once minimizes the stream or VOD, Back again closes it. While a
+  minimized player is showing, Back closes it before it goes back through app pages.
+========================================
 Xtra5 1.15.1 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

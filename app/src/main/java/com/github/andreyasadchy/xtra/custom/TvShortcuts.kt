@@ -33,6 +33,7 @@ import java.lang.ref.WeakReference
  * After letting go, while the controls are still showing, Left / Right hold the seek bar again.
  * Holding a button counts as one press.
  * Long-press Back (player full-size or minimized): close the player, like swiping it away.
+ * Back with the player minimized: close the player, like swiping it away.
  * Long-press OK (live stream, controls hidden): reload the stream, like Restart player.
  *
  * Kept in its own package so upstream Xtra updates can be merged without conflicts.
@@ -94,6 +95,12 @@ object TvShortcuts {
                 consumed.add(keyCode)
                 return true
             }
+        }
+        // Back with the player minimized: close it, like swiping it away.
+        if (isBack && !scrubbing && event.repeatCount == 0 && isMinimized(activity, playerFragment) &&
+            closePlayer(activity, playerFragment)) {
+            consumed.add(keyCode)
+            return true
         }
         if (isBack && !scrubbing) return consumed.contains(keyCode) // short press: normal Back
 
@@ -189,6 +196,12 @@ object TvShortcuts {
         player.restartPlayer()
         Toast.makeText(activity, "Reloading stream", Toast.LENGTH_SHORT).show()
         return true
+    }
+
+    private fun isMinimized(activity: Activity, playerFragment: Fragment?): Boolean {
+        if (!activity.prefs().getBoolean(PREF_ENABLED, false)) return false
+        val player = playerFragment as? PlayerFragment ?: return false
+        return player.isAdded && !player.xtra5PlayerState().isMaximized
     }
 
     /** Closes the player the same way swiping it away does. */
