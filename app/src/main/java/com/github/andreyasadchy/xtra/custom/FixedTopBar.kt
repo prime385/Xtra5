@@ -1,6 +1,9 @@
 package com.github.andreyasadchy.xtra.custom
 
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
@@ -26,7 +29,11 @@ object FixedTopBar {
         activity.supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
             override fun onFragmentViewCreated(fm: FragmentManager, f: Fragment, v: View, savedInstanceState: Bundle?) {
                 if (!activity.prefs().getBoolean(PREF_ENABLED, true)) return
-                findAppBars(v).forEach { fix(it) }
+                // Tab pages adjust their parent screen's bar after it was set up, so fix this
+                // fragment's bars and its parents' bars, now and again once setup has finished.
+                val views = generateSequence(f) { it.parentFragment }.mapNotNull { it.view }.toList()
+                views.forEach { view -> findAppBars(view).forEach { fix(it) } }
+                v.post { views.forEach { view -> findAppBars(view).forEach { fix(it) } } }
             }
         }, true)
     }
@@ -39,8 +46,15 @@ object FixedTopBar {
 
     private fun fix(appBar: AppBarLayout) {
         clearScrollFlags(appBar)
-        // A fixed bar shouldn't change color while the list scrolls ("lift on scroll").
+        // A fixed bar shouldn't change color while the list scrolls: no lift on scroll, no
+        // elevation change, and a plain background in the theme's normal (un-lifted) color.
+        appBar.isLiftOnScroll = false
         appBar.setLiftable(false)
+        appBar.stateListAnimator = null
+        appBar.elevation = 0f
+        if (appBar.background !is ColorDrawable) {
+            appBar.background = ColorDrawable(surfaceColor(appBar))
+        }
         if (appBar.getTag(R.id.xtra5_fixed_top_bar) == null) {
             appBar.setTag(R.id.xtra5_fixed_top_bar, true)
             // Some screens (a channel's pages) turn scrolling back on when switching tabs.
@@ -51,6 +65,14 @@ object FixedTopBar {
                 }
             }
         }
+    }
+
+    private fun surfaceColor(view: View): Int {
+        val tv = TypedValue()
+        val theme = view.context.theme
+        return if (theme.resolveAttribute(com.google.android.material.R.attr.colorSurface, tv, true)) {
+            if (tv.resourceId != 0) view.context.getColor(tv.resourceId) else tv.data
+        } else Color.BLACK
     }
 
     private fun clearScrollFlags(appBar: AppBarLayout) {

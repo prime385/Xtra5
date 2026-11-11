@@ -1,6 +1,14 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.18.3 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Fixed top bar still turned grey when scrolling on some devices (1.18.2 didn't cover it). The
+  fixed bar now has lift-on-scroll and its elevation change switched off and a plain background
+  in the theme's normal color, re-applied whenever a tab's page is set up.
+========================================
 Xtra5 1.18.2 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
