@@ -1586,6 +1586,8 @@ abstract class PlayerFragment : BaseNetworkFragment(), RadioButtonDialogFragment
         }
     }
 
+    fun xtra5PlayerState() = com.github.andreyasadchy.xtra.custom.TvShortcuts.PlayerState(isMaximized, playbackService?.type == BasePlaybackService.STREAM, !viewModel.gamesList.value.isNullOrEmpty(), { showController() }, { showVodGames() }) // Xtra5 custom
+
     fun showVodGames() {
         viewModel.gamesList.value?.let {
             PlayerGamesDialog.newInstance(it).show(childFragmentManager, "closeOnPip")

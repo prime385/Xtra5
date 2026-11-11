@@ -104,4 +104,31 @@
         app:iconSpaceReserved="false"
         app:singleLineTitle="false" />
 
+    <!-- Xtra5 custom: TV mode / remote shortcuts -->
+    <PreferenceCategory
+        android:title="@string/xtra5_tv_shortcuts_category"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="xtra5_tv_shortcuts"
+            android:title="@string/xtra5_tv_shortcuts"
+            android:summary="@string/xtra5_tv_shortcuts_summary"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SeekBarPreference
+            android:defaultValue="10"
+            android:dependency="xtra5_tv_shortcuts"
+            android:key="xtra5_tv_seek_step"
+            android:max="60"
+            android:title="@string/xtra5_tv_seek_step"
+            app:iconSpaceReserved="false"
+            app:min="5"
+            app:seekBarIncrement="5"
+            app:showSeekBarValue="true"
+            app:singleLineTitle="false" />
+
+    </PreferenceCategory>
+
 </androidx.preference.PreferenceScreen>

@@ -4,4 +4,8 @@
     <string name="xtra5_highlights" translatable="false">User highlights (Xtra5)</string>
     <string name="xtra5_highlight_users" translatable="false">Highlighted users</string>
     <string name="xtra5_highlight_color" translatable="false">Default highlight color</string>
+    <string name="xtra5_tv_shortcuts_category" translatable="false">TV mode shortcuts (Xtra5)</string>
+    <string name="xtra5_tv_shortcuts" translatable="false">Enable TV mode shortcuts</string>
+    <string name="xtra5_tv_shortcuts_summary" translatable="false">With the player controls hidden: Left/Right seek, Up shows controls, Down opens chapters</string>
+    <string name="xtra5_tv_seek_step" translatable="false">Seek step (seconds)</string>
 </resources>

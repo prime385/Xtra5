@@ -623,6 +623,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean = com.github.andreyasadchy.xtra.custom.TvShortcuts.handle(this, playerFragment, event) || super.dispatchKeyEvent(event) // Xtra5 custom
+
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         setNavBarColor(newConfig.orientation == Configuration.ORIENTATION_PORTRAIT)
