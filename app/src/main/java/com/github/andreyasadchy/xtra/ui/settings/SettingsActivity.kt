@@ -57,6 +57,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.github.andreyasadchy.xtra.R
+import com.github.andreyasadchy.xtra.custom.UpstreamUpdates // Xtra5 custom
 import com.github.andreyasadchy.xtra.SettingsNavGraphDirections
 import com.github.andreyasadchy.xtra.databinding.ActivitySettingsBinding
 import com.github.andreyasadchy.xtra.databinding.DialogUpdateDownloadBinding
@@ -471,6 +472,7 @@ class SettingsActivity : AppCompatActivity() {
                 findNavController().navigate(SettingsNavGraphDirections.actionGlobalDebugSettingsFragment())
                 true
             }
+            UpstreamUpdates.setupSettings(this) // Xtra5 custom
         }
 
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

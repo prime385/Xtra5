@@ -63,6 +63,7 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.github.andreyasadchy.xtra.R
+import com.github.andreyasadchy.xtra.custom.UpstreamUpdates // Xtra5 custom
 import com.github.andreyasadchy.xtra.databinding.ActivityMainBinding
 import com.github.andreyasadchy.xtra.databinding.DialogUpdateDownloadBinding
 import com.github.andreyasadchy.xtra.model.PlaybackState
@@ -136,6 +137,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         prefs = prefs()
         migrateSettings()
+        UpstreamUpdates.onMainActivityCreate(this) // Xtra5 custom
         if (tokenPrefs().getLong(C.UPDATE_LAST_CHECKED, 0) <= 0L) {
             tokenPrefs().edit {
                 putLong(C.UPDATE_LAST_CHECKED, System.currentTimeMillis())
