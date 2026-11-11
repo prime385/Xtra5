@@ -1,0 +1,101 @@
+# Xtra5: merge official Xtra into custom-xtra5, build, and publish an Xtra5 release.
+# The in-app updater installs these releases (see custom/UpstreamUpdates.kt).
+# Never pushes to master, so the official workflow (android.yml) is never triggered.
+name: Xtra5 build
+
+on:
+  schedule:
+    - cron: '17 9 * * *'   # daily
+  workflow_dispatch:
+  push:
+    branches: [ custom-xtra5 ]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: xtra5-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout custom-xtra5
+      uses: actions/checkout@v7
+      with:
+        ref: custom-xtra5
+        fetch-depth: 0
+
+    - name: Merge official Xtra
+      id: merge
+      run: |
+        git config user.name "prime385"
+        git config user.email "prime385@users.noreply.github.com"
+        git remote add upstream https://github.com/crackededed/Xtra.git
+        git fetch upstream master
+        BEFORE=$(git rev-parse HEAD)
+        if git merge-base --is-ancestor upstream/master HEAD; then
+          echo "Already up to date with official Xtra"
+        else
+          git log --no-merges --format='- %s' HEAD..upstream/master > upstream-changes.txt
+          if ! git merge --no-edit upstream/master -m "Merge official Xtra changes"; then
+            git merge --abort
+            echo "::error::Official Xtra changes conflict with Xtra5 customizations. Resolve the merge manually."
+            exit 1
+          fi
+          # Bump FIX: MAJOR.FEATURE.FIX
+          CUR=$(grep -oP 'val xtra5Version = "\K[0-9]+\.[0-9]+\.[0-9]+' app/build.gradle.kts)
+          NEW=$(echo "$CUR" | awk -F. '{print $1"."$2"."$3+1}')
+          sed -i "s/val xtra5Version = \"$CUR\"/val xtra5Version = \"$NEW\"/" app/build.gradle.kts
+          git commit -am "Xtra5 $NEW: official Xtra updates"
+        fi
+        VERSION=$(grep -oP 'val xtra5Version = "\K[0-9]+\.[0-9]+\.[0-9]+' app/build.gradle.kts)
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        echo "changed=$([ "$(git rev-parse HEAD)" != "$BEFORE" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+        if git ls-remote --exit-code --tags origin "refs/tags/xtra5-v$VERSION" >/dev/null; then
+          echo "release=false" >> "$GITHUB_OUTPUT"
+          echo "Release xtra5-v$VERSION already exists, nothing to build"
+        else
+          echo "release=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Setup Java
+      if: steps.merge.outputs.release == 'true'
+      uses: actions/setup-java@v6
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Setup Gradle
+      if: steps.merge.outputs.release == 'true'
+      uses: gradle/actions/setup-gradle@v6
+      with:
+        cache-provider: 'basic'
+
+    - name: Build
+      if: steps.merge.outputs.release == 'true'
+      run: |
+        ./gradlew assembleRelease
+        cp app/build/outputs/apk/release/app-release.apk "Xtra5-${{ steps.merge.outputs.version }}.apk"
+
+    - name: Push merged branch
+      if: steps.merge.outputs.changed == 'true'
+      run: git push origin HEAD:custom-xtra5
+
+    - name: Publish release
+      if: steps.merge.outputs.release == 'true'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        VERSION: ${{ steps.merge.outputs.version }}
+      run: |
+        {
+          echo "Xtra5 $VERSION, based on official Xtra $(git log -1 --format=%h upstream/master)"
+          if [ -s upstream-changes.txt ]; then
+            echo
+            echo "Official Xtra changes in this build:"
+            head -n 50 upstream-changes.txt
+          fi
+        } > notes.txt
+        gh release create "xtra5-v$VERSION" "Xtra5-$VERSION.apk" \
+          --target "$(git rev-parse HEAD)" --title "Xtra5 $VERSION" --notes-file notes.txt --latest=true
