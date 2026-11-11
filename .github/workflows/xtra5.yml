@@ -1,5 +1,6 @@
 # Xtra5: merge official Xtra into custom-xtra5, build, and publish an Xtra5 release.
 # The in-app updater installs these releases (see custom/UpstreamUpdates.kt).
+# Only ever writes to this repository (prime385/Xtra5). Official Xtra is fetched read-only.
 # Never pushes to master, so the official workflow (android.yml) is never triggered.
 name: Xtra5 build
 
@@ -32,14 +33,15 @@ jobs:
       run: |
         git config user.name "prime385"
         git config user.email "prime385@users.noreply.github.com"
-        git remote add upstream https://github.com/crackededed/Xtra.git
-        git fetch upstream master
+        # Read-only fetch of official Xtra into a local ref. No remote is added, so
+        # nothing (git or gh) can ever target the official repository.
+        git fetch https://github.com/crackededed/Xtra.git +master:refs/official/master
         BEFORE=$(git rev-parse HEAD)
-        if git merge-base --is-ancestor upstream/master HEAD; then
+        if git merge-base --is-ancestor refs/official/master HEAD; then
           echo "Already up to date with official Xtra"
         else
-          git log --no-merges --format='- %s' HEAD..upstream/master > upstream-changes.txt
-          if ! git merge --no-edit upstream/master -m "Merge official Xtra changes"; then
+          git log --no-merges --format='- %s' HEAD..refs/official/master > upstream-changes.txt
+          if ! git merge --no-edit refs/official/master -m "Merge official Xtra changes"; then
             git merge --abort
             echo "::error::Official Xtra changes conflict with Xtra5 customizations. Resolve the merge manually."
             exit 1
@@ -90,12 +92,12 @@ jobs:
         VERSION: ${{ steps.merge.outputs.version }}
       run: |
         {
-          echo "Xtra5 $VERSION, based on official Xtra $(git log -1 --format=%h upstream/master)"
+          echo "Xtra5 $VERSION, based on official Xtra $(git log -1 --format=%h refs/official/master)"
           if [ -s upstream-changes.txt ]; then
             echo
             echo "Official Xtra changes in this build:"
             head -n 50 upstream-changes.txt
           fi
         } > notes.txt
-        gh release create "xtra5-v$VERSION" "Xtra5-$VERSION.apk" \
+        gh release create --repo "$GITHUB_REPOSITORY" "xtra5-v$VERSION" "Xtra5-$VERSION.apk" \
           --target "$(git rev-parse HEAD)" --title "Xtra5 $VERSION" --notes-file notes.txt --latest=true
