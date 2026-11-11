@@ -1,6 +1,15 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.12.0 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Stream card text sizes (Settings > UI > Stream cards): separate sliders for the streamer name,
+  category and title, 10-20sp each. Defaults match 1.10.2 (name 16, category 16, title 12).
+  Bold name and category, regular-weight title, unchanged. New sizes show the next time a
+  stream list loads.
+========================================
 Xtra5 1.11.0 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
