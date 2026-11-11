@@ -30,4 +30,5 @@
         <item>condensed</item>
         <item>condensed_medium</item>
     </string-array>
+    <item name="xtra5_reply_row" type="id" />
 </resources>

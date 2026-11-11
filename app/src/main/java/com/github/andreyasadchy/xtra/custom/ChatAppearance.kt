@@ -11,6 +11,8 @@ import android.util.TypedValue
 import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.github.andreyasadchy.xtra.R
+import com.github.andreyasadchy.xtra.model.chat.ChatMessage
 import com.github.andreyasadchy.xtra.util.prefs
 
 /**
@@ -56,6 +58,13 @@ object ChatAppearance {
         }
     }
 
+    /** Marks grey "replying to" rows so no spacing or line separates them from their message. */
+    fun markRow(itemView: View, chatMessage: ChatMessage) {
+        itemView.setTag(R.id.xtra5_reply_row, chatMessage.type == ChatMessage.REPLY_MESSAGE)
+    }
+
+    private fun isReplyRow(view: View) = view.getTag(R.id.xtra5_reply_row) == true
+
     /** Sizes the username at the start of a message (50-150% of the message text). */
     fun styleUserName(context: Context, builder: Spannable, start: Int, end: Int) {
         val percent = context.prefs().getInt(PREF_USERNAME_SIZE, 100).coerceIn(50, 150)
@@ -64,7 +73,10 @@ object ChatAppearance {
         }
     }
 
-    /** Adds [spacing] px between messages, with an optional 1 px line in the middle of the gap. */
+    /**
+     * Adds [spacing] px below each message, with an optional 1 px line in the middle of the gap.
+     * Reply rows get no gap below, so they stay attached to the message they belong to.
+     */
     private class Spacing(recyclerView: RecyclerView, private val spacing: Int, private val lines: Boolean) : RecyclerView.ItemDecoration() {
 
         private val paint = Paint().apply {
@@ -77,15 +89,17 @@ object ChatAppearance {
         }
 
         override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
-            if (parent.getChildAdapterPosition(view) > 0) outRect.top = spacing
+            if (!isReplyRow(view)) outRect.bottom = spacing
         }
 
         override fun onDraw(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
             if (!lines) return
+            val last = (parent.adapter?.itemCount ?: 0) - 1
             for (i in 0 until parent.childCount) {
                 val child = parent.getChildAt(i)
-                if (parent.getChildAdapterPosition(child) <= 0) continue
-                val y = child.top + child.translationY - spacing / 2f
+                val position = parent.getChildAdapterPosition(child)
+                if (position == RecyclerView.NO_POSITION || position >= last || isReplyRow(child)) continue
+                val y = child.bottom + child.translationY + spacing / 2f
                 c.drawLine(parent.paddingLeft.toFloat(), y, (parent.width - parent.paddingRight).toFloat(), y, paint)
             }
         }

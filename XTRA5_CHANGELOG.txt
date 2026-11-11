@@ -1,6 +1,17 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.10.1 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Message spacing and lines no longer separate a grey "replying to" line from the message it
+  belongs to; they now read as one message.
+
+Changed
+- Message spacing now sits below each message, so there is a small gap (your spacing setting)
+  at the very bottom of the chat. No line is drawn under the newest message.
+========================================
 Xtra5 1.10.0 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
