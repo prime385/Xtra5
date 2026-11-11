@@ -1,6 +1,15 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.18.0 (2026-11-11)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Refresh button in the top bar, between search and the ⋮ menu, on every screen with the search
+  button (Following, Popular, Games, Saved, category pages). One press reloads every loaded
+  section of that screen (e.g. Live, Videos and Channels), the same as pulling down to refresh.
+  Sections not opened yet load fresh when first opened. Works with the D-pad.
+========================================
 Xtra5 1.17.0 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
