@@ -16,6 +16,8 @@ import java.lang.ref.WeakReference
  *  - Coming back to the app after leaving it with no video on screen (not picture-in-picture)
  *    reloads an open live stream (minimized or full-size), like Restart player. VODs and clips
  *    are not reloaded.
+ *  - Coming back from another screen of the app (e.g. Settings) plays the video again if it was
+ *    playing before; maximizing a paused minimized video plays it (live streams jump to live).
  *
  * Kept in its own package so upstream Xtra updates can be merged without conflicts.
  * Upstream hook: PlayerFragment.minimize(); the rest starts from UpstreamUpdates.onMainActivityCreate.
@@ -29,6 +31,11 @@ object AutoRefresh {
     private var registered = false
     private var startedActivities = 0
     private var main: WeakReference<MainActivity>? = null
+
+    /** Called from PlayerFragment.maximize(): a paused video starts playing (live jumps to live). */
+    fun onMaximized(player: PlayerFragment) {
+        handler.postDelayed({ AudioGuard.resumeIfPaused(player) }, 300L)
+    }
 
     /** Called from PlayerFragment.minimize(). */
     fun onMinimized(player: PlayerFragment) {
@@ -51,6 +58,13 @@ object AutoRefresh {
             override fun onActivityStarted(a: Activity) {
                 if (a is MainActivity) main = WeakReference(a)
                 startedActivities++
+                // Back from another screen of the app (e.g. Settings): play again if it was playing.
+                if (a is MainActivity && startedActivities > 1 && playingWhenLeft) {
+                    playingWhenLeft = false
+                    handler.postDelayed({
+                        (main?.get()?.playerFragment as? PlayerFragment)?.let { AudioGuard.resumeIfPaused(it) }
+                    }, RESUME_DELAY_MS)
+                }
                 // In picture-in-picture the app is never stopped, so this only runs after the app
                 // was fully in the background (no video on screen).
                 if (startedActivities == 1 && wasInBackground) {
@@ -61,6 +75,11 @@ object AutoRefresh {
 
             override fun onActivityStopped(a: Activity) {
                 startedActivities = (startedActivities - 1).coerceAtLeast(0)
+                if (a is MainActivity && !a.isChangingConfigurations) {
+                    // Another screen of the app is on top (e.g. Settings) if anything is still started.
+                    playingWhenLeft = startedActivities > 0 && !AudioGuard.isPaused &&
+                        (a.playerFragment as? PlayerFragment)?.isAdded == true
+                }
                 if (startedActivities == 0 && !a.isChangingConfigurations) wasInBackground = true
             }
 
@@ -74,6 +93,7 @@ object AutoRefresh {
     }
 
     private var wasInBackground = false
+    private var playingWhenLeft = false
 
     private fun reloadLiveStream() {
         val activity = main?.get() ?: return

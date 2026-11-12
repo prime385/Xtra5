@@ -35,6 +35,7 @@
     <item name="xtra5_fixed_top_bar" type="id" />
     <item name="xtra5_refresh" type="id" />
     <item name="xtra5_sync_emotes" type="id" />
+    <item name="xtra5_player_settings" type="id" />
     <string name="xtra5_stream_cards" translatable="false">Stream cards (Xtra5)</string>
     <string name="xtra5_card_name_size" translatable="false">Streamer name size (sp)</string>
     <string name="xtra5_card_category_size" translatable="false">Category size (sp)</string>

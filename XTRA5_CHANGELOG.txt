@@ -1,6 +1,17 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.24.0 (2026-11-12)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Settings button in the player's top-right controls, just before the ⋮ menu (sliders icon),
+  to open the app's Settings without minimizing the video. Shows and hides with the controls.
+- Coming back from Settings (or another screen of the app opened on top) plays the video again
+  if it was playing before; live streams jump to live.
+- Maximizing a paused minimized video plays it; live streams jump to live, VODs carry on from
+  where they were paused.
+========================================
 Xtra5 1.23.0 (2026-11-12)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

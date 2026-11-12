@@ -43,7 +43,10 @@ object UpstreamUpdates {
     fun onMainActivityCreate(activity: AppCompatActivity) {
         FixedTopBar.register(activity) // Xtra5: fixed top bar (Settings > UI)
         RefreshButton.register(activity) // Xtra5: refresh button in the top bar
-        (activity as? com.github.andreyasadchy.xtra.ui.main.MainActivity)?.let { AutoRefresh.register(it) } // Xtra5: auto refresh
+        (activity as? com.github.andreyasadchy.xtra.ui.main.MainActivity)?.let {
+            AutoRefresh.register(it) // Xtra5: auto refresh / auto play
+            PlayerExtras.register(it) // Xtra5: Settings button in the player controls
+        }
         val prefs = activity.prefs()
         // Xtra5: don't pause when headphones / Bluetooth audio disconnect (see AudioGuard).
         if (prefs.getBoolean(C.PLAYER_HANDLE_AUDIO_BECOMING_NOISY, true)) {

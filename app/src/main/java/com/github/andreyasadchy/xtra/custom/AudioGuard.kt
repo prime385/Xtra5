@@ -3,6 +3,7 @@ package com.github.andreyasadchy.xtra.custom
 import android.os.SystemClock
 import android.view.KeyEvent
 import androidx.media3.common.Player
+import com.github.andreyasadchy.xtra.ui.player.PlayerFragment
 
 /**
  * Xtra5 custom: live streams keep playing and stay live.
@@ -23,6 +24,10 @@ import androidx.media3.common.Player
 object AudioGuard {
 
     private const val APP_KEY_WINDOW_MS = 1000L
+
+    /** Whether the current video is paused (reported by both player engines). */
+    var isPaused = false
+        private set
     private var lastAppMediaKey = 0L
 
     private val mediaKeys = setOf(
@@ -47,6 +52,7 @@ object AudioGuard {
             private var paused = false
 
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                isPaused = !playWhenReady
                 if (!playWhenReady) {
                     paused = true
                 } else if (paused) {
@@ -57,10 +63,16 @@ object AudioGuard {
         })
     }
 
+    /** Plays [player] if it is paused. Live streams then jump to live (see above). */
+    fun resumeIfPaused(player: PlayerFragment) {
+        if (isPaused && player.isAdded) player.playPause()
+    }
+
     private var mediaPlayerPaused = false
 
     /** MediaPlayer: called on every play/pause change; restarts a live stream when unpaused. */
     fun onMediaPlayerState(isPlaying: Boolean, isLive: Boolean, restart: () -> Unit) {
+        isPaused = !isPlaying
         if (!isPlaying) {
             mediaPlayerPaused = true
         } else if (mediaPlayerPaused) {
