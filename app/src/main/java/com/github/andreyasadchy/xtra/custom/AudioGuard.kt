@@ -1,80 +1,71 @@
 package com.github.andreyasadchy.xtra.custom
 
-import android.content.Context
-import android.media.AudioDeviceCallback
-import android.media.AudioDeviceInfo
-import android.media.AudioManager
-import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.os.SystemClock
+import android.view.KeyEvent
+import androidx.media3.common.Player
 
 /**
- * Xtra5 custom: keep playing when headphones / Bluetooth audio disconnect.
+ * Xtra5 custom: live streams keep playing and stay live.
  *
- * Many Bluetooth earbuds send a "pause" media button as they disconnect. Pauses arriving through
- * the media session within WINDOW_MS of a Bluetooth / wired / USB audio output disconnecting are
- * treated as part of the disconnect: ignored if they come just after it, undone (playback
- * resumed) if they come just before it. Other pauses are unaffected. Android's "audio becoming
- * noisy" pause is switched off separately (see UpstreamUpdates.onMainActivityCreate).
+ *  - On live streams, pauses that reach the player's media session from outside the app are
+ *    ignored: earbuds / headphones (taps, taking them out, putting them in the case) and Android's
+ *    system media controls. Media keys from the TV remote go through the app first, so they still
+ *    pause. On-screen controls and the notification don't use the media session and work as
+ *    normal. VODs and clips are unaffected.
+ *  - Unpausing a paused live stream (any way) jumps to the live edge: ExoPlayer seeks to live,
+ *    MediaPlayer (which can't seek live streams) restarts the stream.
+ *  Android's "audio becoming noisy" pause is switched off in UpstreamUpdates.onMainActivityCreate.
  *
  * Kept in its own package so upstream Xtra updates can be merged without conflicts.
- * Upstream hooks: media session onPause() in ExoPlayerService and MediaPlayerService.
+ * Upstream hooks: media session onPause() and player setup in ExoPlayerService and
+ * MediaPlayerService (updatePlayingState); TvShortcuts.handle reports the app's own media keys.
  */
 object AudioGuard {
 
-    private const val WINDOW_MS = 2000L
+    private const val APP_KEY_WINDOW_MS = 1000L
+    private var lastAppMediaKey = 0L
 
-    private val handler = Handler(Looper.getMainLooper())
-    private var registered = false
-    private var lastDisconnect = 0L
-    private var pendingResume: (() -> Unit)? = null
-    private val clearPending = Runnable { pendingResume = null }
+    private val mediaKeys = setOf(
+        KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_PLAY,
+        KeyEvent.KEYCODE_MEDIA_STOP, KeyEvent.KEYCODE_HEADSETHOOK,
+    )
 
-    private val headphoneTypes = buildSet {
-        add(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP)
-        add(AudioDeviceInfo.TYPE_BLUETOOTH_SCO)
-        add(AudioDeviceInfo.TYPE_WIRED_HEADSET)
-        add(AudioDeviceInfo.TYPE_WIRED_HEADPHONES)
-        add(AudioDeviceInfo.TYPE_USB_HEADSET)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            add(AudioDeviceInfo.TYPE_BLE_HEADSET)
-            add(AudioDeviceInfo.TYPE_BLE_SPEAKER)
-        }
+    /** Called for every key the app's window receives (e.g. the TV remote's play/pause). */
+    fun onAppKey(event: KeyEvent) {
+        if (event.keyCode in mediaKeys) lastAppMediaKey = SystemClock.uptimeMillis()
     }
 
-    private val callback = object : AudioDeviceCallback() {
-        override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
-            if (removedDevices.none { it.isSink && it.type in headphoneTypes }) return
-            lastDisconnect = SystemClock.uptimeMillis()
-            // A pause that arrived just before the disconnect: undo it.
-            pendingResume?.let {
-                pendingResume = null
-                handler.removeCallbacks(clearPending)
-                it()
+    /** Called by the media session's onPause(). Returns true when the pause should be ignored. */
+    fun onSessionPause(isLive: Boolean): Boolean {
+        if (!isLive) return false
+        return SystemClock.uptimeMillis() - lastAppMediaKey > APP_KEY_WINDOW_MS
+    }
+
+    /** ExoPlayer: when a paused live stream is unpaused, jump to the live edge. */
+    fun watchLiveResume(player: Player, isLive: () -> Boolean) {
+        player.addListener(object : Player.Listener {
+            private var paused = false
+
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                if (!playWhenReady) {
+                    paused = true
+                } else if (paused) {
+                    paused = false
+                    if (isLive() && player.isCurrentMediaItemLive) player.seekToDefaultPosition()
+                }
             }
+        })
+    }
+
+    private var mediaPlayerPaused = false
+
+    /** MediaPlayer: called on every play/pause change; restarts a live stream when unpaused. */
+    fun onMediaPlayerState(isPlaying: Boolean, isLive: Boolean, restart: () -> Unit) {
+        if (!isPlaying) {
+            mediaPlayerPaused = true
+        } else if (mediaPlayerPaused) {
+            mediaPlayerPaused = false
+            if (isLive) restart()
         }
-    }
-
-    /** Starts watching audio outputs (once). */
-    fun ensureRegistered(context: Context) {
-        if (registered) return
-        val audioManager = context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
-        audioManager.registerAudioDeviceCallback(callback, handler)
-        registered = true
-    }
-
-    /**
-     * Called by the media session's onPause(). Returns true when the pause should be ignored.
-     * [resume] restarts playback if a disconnect follows shortly after this pause.
-     */
-    fun onSessionPause(context: Context, resume: () -> Unit): Boolean {
-        ensureRegistered(context)
-        val now = SystemClock.uptimeMillis()
-        if (now - lastDisconnect < WINDOW_MS) return true
-        pendingResume = resume
-        handler.removeCallbacks(clearPending)
-        handler.postDelayed(clearPending, WINDOW_MS)
-        return false
     }
 }

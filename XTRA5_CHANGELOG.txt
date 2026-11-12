@@ -1,6 +1,18 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.23.0 (2026-11-12)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Changed
+- Live streams ignore pauses from earbuds / headphones (taking them out, putting them in the
+  case, taps) and from Android's system media controls, so a live stream keeps playing. The TV
+  remote, on-screen controls and the notification still pause, and play from earbuds still
+  works. VODs and clips pause from earbuds as normal. Replaces 1.22.0's "2 seconds around a
+  disconnect" rule, which missed earbuds that pause before disconnecting.
+- Unpausing a paused live stream (any way) jumps straight to live instead of carrying on from
+  where it was paused (ExoPlayer seeks to live; the MediaPlayer engine restarts the stream).
+========================================
 Xtra5 1.22.0 (2026-11-12)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

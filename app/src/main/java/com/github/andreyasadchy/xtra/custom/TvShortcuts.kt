@@ -77,6 +77,7 @@ object TvShortcuts {
 
     /** Returns true if the key event was handled and should not reach the rest of the app. */
     fun handle(activity: Activity, playerFragment: Fragment?, event: KeyEvent): Boolean {
+        AudioGuard.onAppKey(event) // remote media keys may still pause live streams
         val keyCode = event.keyCode
         val scrubbing = scrub != null
         val isBack = keyCode == KeyEvent.KEYCODE_BACK

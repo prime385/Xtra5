@@ -152,7 +152,7 @@ class MediaPlayerService : BasePlaybackService() {
                 }
 
                 override fun onPause() {
-                    if (com.github.andreyasadchy.xtra.custom.AudioGuard.onSessionPause(this@MediaPlayerService) { onPlay() }) return // Xtra5 custom
+                    if (com.github.andreyasadchy.xtra.custom.AudioGuard.onSessionPause(type == STREAM)) return // Xtra5 custom
                     player?.let { player ->
                         player.pause()
                         updatePlayingState()
@@ -1935,6 +1935,7 @@ class MediaPlayerService : BasePlaybackService() {
     }
 
     fun updatePlayingState() {
+        player?.let { com.github.andreyasadchy.xtra.custom.AudioGuard.onMediaPlayerState(it.isPlaying, type == STREAM) { restartPlayer() } } // Xtra5 custom
         updatePlaybackState()
         updateNotification()
         player?.let { player ->

@@ -617,7 +617,7 @@ class ExoPlayerService : BasePlaybackService() {
                 }
 
                 override fun onPause() {
-                    if (com.github.andreyasadchy.xtra.custom.AudioGuard.onSessionPause(this@ExoPlayerService) { player?.play() }) return // Xtra5 custom
+                    if (com.github.andreyasadchy.xtra.custom.AudioGuard.onSessionPause(type == STREAM)) return // Xtra5 custom
                     pause()
                 }
 
@@ -703,6 +703,7 @@ class ExoPlayerService : BasePlaybackService() {
             }.build()
             this.player = player
             player.addListener(playerListener)
+            com.github.andreyasadchy.xtra.custom.AudioGuard.watchLiveResume(player) { type == STREAM } // Xtra5 custom
             val session = MediaSession(this, "ExoPlayerService")
             this.session = session
             session.setCallback(sessionCallback)
@@ -1722,6 +1723,7 @@ class ExoPlayerService : BasePlaybackService() {
                 setSeekForwardIncrementMs((prefs().getString(C.PLAYER_FORWARD, "10")?.toLongOrNull() ?: 10) * 1000)
             }.build()
             player.addListener(playerListener)
+            com.github.andreyasadchy.xtra.custom.AudioGuard.watchLiveResume(player) { type == STREAM } // Xtra5 custom
             val url = if (streamProxy != null) {
                 quality?.url
             } else {
