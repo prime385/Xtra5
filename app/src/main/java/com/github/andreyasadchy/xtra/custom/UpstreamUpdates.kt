@@ -43,6 +43,7 @@ object UpstreamUpdates {
     fun onMainActivityCreate(activity: AppCompatActivity) {
         FixedTopBar.register(activity) // Xtra5: fixed top bar (Settings > UI)
         RefreshButton.register(activity) // Xtra5: refresh button in the top bar
+        (activity as? com.github.andreyasadchy.xtra.ui.main.MainActivity)?.let { AutoRefresh.register(it) } // Xtra5: auto refresh
         val prefs = activity.prefs()
         // Point the built-in updater at Xtra5 releases, never at official Xtra builds.
         val url = prefs.getString(C.UPDATE_URL, null)

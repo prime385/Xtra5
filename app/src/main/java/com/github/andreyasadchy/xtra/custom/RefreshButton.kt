@@ -49,13 +49,13 @@ object RefreshButton {
     }
 
     /** Refreshes the screen currently shown in the main activity. False if there is none. */
-    fun refreshCurrentScreen(activity: Activity): Boolean {
+    fun refreshCurrentScreen(activity: Activity, showMessage: Boolean = true): Boolean {
         val main = activity as? AppCompatActivity ?: return false
         val host = main.supportFragmentManager.findFragmentById(R.id.navHostFragment) ?: return false
         val screen = host.childFragmentManager.primaryNavigationFragment
             ?: host.childFragmentManager.fragments.lastOrNull() ?: return false
         refreshAll(screen)
-        Toast.makeText(activity, "Refreshing", Toast.LENGTH_SHORT).show()
+        if (showMessage) Toast.makeText(activity, "Refreshing", Toast.LENGTH_SHORT).show()
         return true
     }
 

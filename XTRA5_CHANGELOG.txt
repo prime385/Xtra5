@@ -1,6 +1,16 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.21.0 (2026-11-12)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Minimizing a stream or VOD while using the app automatically refreshes every section of the
+  screen behind it (like the refresh button), once the minimize animation has finished.
+- Coming back to the app after leaving it with no video on screen (home screen, another app,
+  screen off; not picture-in-picture) automatically reloads an open live stream, minimized or
+  full-size, like Restart player. VODs and clips are not reloaded.
+========================================
 Xtra5 1.20.0 (2026-11-12)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

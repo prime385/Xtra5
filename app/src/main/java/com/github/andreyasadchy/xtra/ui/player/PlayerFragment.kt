@@ -2023,6 +2023,7 @@ abstract class PlayerFragment : BaseNetworkFragment(), RadioButtonDialogFragment
     fun minimize() {
         with(binding) {
             isMaximized = false
+            com.github.andreyasadchy.xtra.custom.AutoRefresh.onMinimized(this@PlayerFragment) // Xtra5 custom
             if (playbackService?.type == BasePlaybackService.STREAM && chatFragment?.emoteMenuIsVisible() == true) {
                 chatFragment?.toggleBackPressedCallback(false)
             }
