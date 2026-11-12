@@ -152,6 +152,7 @@ class MediaPlayerService : BasePlaybackService() {
                 }
 
                 override fun onPause() {
+                    if (com.github.andreyasadchy.xtra.custom.AudioGuard.onSessionPause(this@MediaPlayerService) { onPlay() }) return // Xtra5 custom
                     player?.let { player ->
                         player.pause()
                         updatePlayingState()

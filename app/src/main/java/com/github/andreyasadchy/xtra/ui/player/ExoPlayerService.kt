@@ -617,6 +617,7 @@ class ExoPlayerService : BasePlaybackService() {
                 }
 
                 override fun onPause() {
+                    if (com.github.andreyasadchy.xtra.custom.AudioGuard.onSessionPause(this@ExoPlayerService) { player?.play() }) return // Xtra5 custom
                     pause()
                 }
 

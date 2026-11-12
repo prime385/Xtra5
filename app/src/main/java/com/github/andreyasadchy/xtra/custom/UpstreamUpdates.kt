@@ -45,6 +45,11 @@ object UpstreamUpdates {
         RefreshButton.register(activity) // Xtra5: refresh button in the top bar
         (activity as? com.github.andreyasadchy.xtra.ui.main.MainActivity)?.let { AutoRefresh.register(it) } // Xtra5: auto refresh
         val prefs = activity.prefs()
+        // Xtra5: never pause when headphones / Bluetooth audio disconnect (see AudioGuard).
+        if (prefs.getBoolean(C.PLAYER_HANDLE_AUDIO_BECOMING_NOISY, true)) {
+            prefs.edit { putBoolean(C.PLAYER_HANDLE_AUDIO_BECOMING_NOISY, false) }
+        }
+        AudioGuard.ensureRegistered(activity)
         // Point the built-in updater at Xtra5 releases, never at official Xtra builds.
         val url = prefs.getString(C.UPDATE_URL, null)
         if (url.isNullOrBlank() || url.equals(OFFICIAL_UPDATE_URL, true)) {

@@ -1,6 +1,16 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.22.0 (2026-11-12)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Changed
+- Videos keep playing when Bluetooth or wired headphones / IEMs disconnect; audio continues on
+  the device's speakers. Android's "audio becoming noisy" pause is always off (official Xtra's
+  switch for it no longer has any effect), and a headset's own "pause" signal sent within about
+  2 seconds of it disconnecting is ignored, or undone if it arrives just before the disconnect.
+  Pausing from the remote, screen or notification at other times works as normal.
+========================================
 Xtra5 1.21.1 (2026-11-12)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
