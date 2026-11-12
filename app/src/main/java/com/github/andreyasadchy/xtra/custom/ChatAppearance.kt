@@ -38,6 +38,10 @@ object ChatAppearance {
         "condensed_medium" to "sans-serif-condensed-medium",
     )
 
+    /** The chat font chosen in Settings, or null for the default. */
+    fun chatTypeface(context: Context): Typeface? =
+        fonts[context.prefs().getString(PREF_FONT, "default")]?.let { Typeface.create(it, Typeface.NORMAL) }
+
     /** Called once when the chat list is set up. */
     fun apply(recyclerView: RecyclerView) {
         EmoteSync.attachTo(recyclerView)

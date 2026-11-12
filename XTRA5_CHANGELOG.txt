@@ -1,6 +1,17 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.20.0 (2026-11-12)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Changed
+- Highlight color picker, landscape: three columns - the wheel on the left; the preview, hex
+  field with Save color and the sliders in the middle; Saved then Presets colors on the right
+  in grids 4 across (only that column scrolls if needed). The dialog is wider to fit.
+- Color picker preview now shows three chat messages ("Hello chat!") - a normal one above, the
+  highlighted one, and a normal one below - on the chat background with your chat font,
+  username size and bold setting, so you can see how the highlight will really look.
+========================================
 Xtra5 1.19.0 (2026-11-12)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

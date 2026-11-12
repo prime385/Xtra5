@@ -9,12 +9,17 @@ import android.text.Editable
 import android.text.InputFilter
 import android.text.InputType
 import android.text.TextWatcher
+import android.text.style.StyleSpan
+import android.text.style.ForegroundColorSpan
+import android.text.Spanned
+import android.text.SpannableStringBuilder
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.GridLayout
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -201,14 +206,50 @@ object HighlightDialogs {
         var alpha = Color.alpha(initial)
         var updating = false
 
-        val preview = TextView(ctx).apply {
-            text = "$previewName: Hello chat!"
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
-            setPadding(dp(ctx, 12), dp(ctx, 10), dp(ctx, 12), dp(ctx, 10))
+        val metrics = ctx.resources.displayMetrics
+        val landscape = metrics.widthPixels > metrics.heightPixels
+
+        // Chat preview: a normal message, the highlighted one, another normal message, styled like
+        // the real chat (background, font, username size and bold setting).
+        fun chatLine(name: String, nameColor: Int) = TextView(ctx).apply {
+            val bold = ctx.prefs().getBoolean("chat_boldnames", false)
+            text = SpannableStringBuilder().apply {
+                append(name)
+                setSpan(ForegroundColorSpan(nameColor), 0, name.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                if (bold) setSpan(StyleSpan(Typeface.BOLD), 0, name.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                ChatAppearance.styleUserName(ctx, this, 0, name.length)
+                append(": Hello chat!")
+            }
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            ChatAppearance.chatTypeface(ctx)?.let { typeface = it }
+            setPadding(dp(ctx, 8), dp(ctx, 4), dp(ctx, 8), dp(ctx, 4))
+        }
+        val preview = chatLine(previewName, 0xFF1E90FF.toInt())
+        val previewBox = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(themeColor(ctx, android.R.attr.colorBackground))
+            setPadding(0, dp(ctx, 4), 0, dp(ctx, 4))
+            addView(chatLine("chatter_one", 0xFFFF7F50.toInt()))
+            addView(preview, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            addView(chatLine("chatter_two", 0xFF9ACD32.toInt()))
         }
         val wheel = ColorWheelView(ctx)
         val swatches = ArrayList<Pair<View, Int>>()
-        val swatchRow = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+        // Landscape: color circles in a grid 4 across; portrait: one scrollable row.
+        fun circleGrid() = GridLayout(ctx).apply { columnCount = if (landscape) 4 else 99 }
+        fun circleParams() = GridLayout.LayoutParams().apply {
+            width = dp(ctx, 32); height = dp(ctx, 32)
+            setMargins(dp(ctx, 4), dp(ctx, 4), dp(ctx, 4), dp(ctx, 4))
+        }
+        fun circleHolder(grid: View): ViewGroup = if (landscape) {
+            LinearLayout(ctx).apply { addView(grid) }
+        } else {
+            HorizontalScrollView(ctx).apply {
+                isHorizontalScrollBarEnabled = false
+                addView(grid)
+            }
+        }
+        val swatchRow = circleGrid()
         val hex = EditText(ctx).apply {
             isSingleLine = true
             typeface = Typeface.MONOSPACE
@@ -222,15 +263,12 @@ object HighlightDialogs {
         fun current() = Color.HSVToColor(alpha, hsv)
         /** Pushes the current color to every control except [source], which the user is touching. */
         // Saved colors (color + opacity), shared by every picker.
-        val savedRow = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
+        val savedRow = circleGrid()
         val savedLabel = TextView(ctx).apply {
             text = "Saved (long-press to remove)"
             setPadding(dp(ctx, 4), dp(ctx, 8), 0, 0)
         }
-        val savedScroll = HorizontalScrollView(ctx).apply {
-            isHorizontalScrollBarEnabled = false
-            addView(savedRow)
-        }
+        val savedScroll = circleHolder(savedRow)
         lateinit var applySaved: (Int) -> Unit
         lateinit var removeSaved: (Int) -> Unit
         fun renderSaved(current: Int) {
@@ -244,9 +282,7 @@ object HighlightDialogs {
                     contentDescription = UserHighlights.toHex(color)
                     setOnClickListener { applySaved(color) }
                     setOnLongClickListener { removeSaved(color); true }
-                }, LinearLayout.LayoutParams(dp(ctx, 32), dp(ctx, 32)).apply {
-                    setMargins(dp(ctx, 4), dp(ctx, 4), dp(ctx, 4), dp(ctx, 4))
-                })
+                }, circleParams())
             }
         }
 
@@ -298,9 +334,7 @@ object HighlightDialogs {
                 }
             }
             swatches.add(view to rgb)
-            swatchRow.addView(view, LinearLayout.LayoutParams(dp(ctx, 32), dp(ctx, 32)).apply {
-                setMargins(dp(ctx, 4), dp(ctx, 4), dp(ctx, 4), dp(ctx, 4))
-            })
+            swatchRow.addView(view, circleParams())
         }
         hex.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -360,50 +394,58 @@ object HighlightDialogs {
                 }
             }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { marginStart = dp(ctx, 8) })
         }
-        val metrics = ctx.resources.displayMetrics
-        val landscape = metrics.widthPixels > metrics.heightPixels
         // Room left for the wheel after the dialog title, buttons and the other controls.
         wheel.maxSizePx = if (landscape) {
             (metrics.heightPixels - dp(ctx, 190)).coerceIn(dp(ctx, 140), dp(ctx, 260))
         } else {
-            (metrics.heightPixels - dp(ctx, 530)).coerceIn(dp(ctx, 120), dp(ctx, 240))
+            (metrics.heightPixels - dp(ctx, 590)).coerceIn(dp(ctx, 120), dp(ctx, 240))
         }
         fun matchWidth(top: Int = 0) = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = top }
         val presetsLabel = TextView(ctx).apply {
             text = "Presets"
             setPadding(dp(ctx, 4), dp(ctx, 8), 0, 0)
         }
-        val presets = HorizontalScrollView(ctx).apply {
-            isHorizontalScrollBarEnabled = false
-            addView(swatchRow)
-        }
+        val presets = circleHolder(swatchRow)
         val controls = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
-            if (landscape) addView(preview, matchWidth())
+            if (landscape) addView(previewBox, matchWidth())
             addView(hexRow, matchWidth(dp(ctx, if (landscape) 4 else 8)))
             addView(brightLabel)
             addView(bright, matchWidth())
             addView(opacityLabel)
             addView(opacity, matchWidth())
-            addView(savedLabel)
-            addView(savedScroll)
-            addView(presetsLabel)
-            addView(presets)
+            if (!landscape) {
+                addView(savedLabel)
+                addView(savedScroll)
+                addView(presetsLabel)
+                addView(presets)
+            }
         }
         val content = if (landscape) {
-            // Wheel on the left, everything else on the right: no scrolling needed.
+            // Wheel | preview, hex and sliders | saved and preset colors (4 across). Only the
+            // colors column scrolls, if it is ever taller than the screen.
+            val colors = ScrollView(ctx).apply {
+                addView(LinearLayout(ctx).apply {
+                    orientation = LinearLayout.VERTICAL
+                    addView(savedLabel)
+                    addView(savedScroll)
+                    addView(presetsLabel)
+                    addView(presets)
+                })
+            }
             LinearLayout(ctx).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(dp(ctx, 20), dp(ctx, 4), dp(ctx, 20), 0)
                 addView(wheel, LinearLayout.LayoutParams(wheel.maxSizePx, wheel.maxSizePx).apply { marginEnd = dp(ctx, 20) })
                 addView(controls, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                addView(colors, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, (metrics.heightPixels - dp(ctx, 170)).coerceAtLeast(dp(ctx, 200))).apply { marginStart = dp(ctx, 20) })
             }
         } else {
             LinearLayout(ctx).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(dp(ctx, 20), dp(ctx, 8), dp(ctx, 20), 0)
-                addView(preview, matchWidth().apply { bottomMargin = dp(ctx, 8) })
+                addView(previewBox, matchWidth().apply { bottomMargin = dp(ctx, 8) })
                 addView(wheel, matchWidth().apply { gravity = Gravity.CENTER_HORIZONTAL })
                 addView(controls, matchWidth())
             }
@@ -416,7 +458,7 @@ object HighlightDialogs {
             .show()
         if (landscape) {
             dialog.window?.setLayout(
-                (metrics.widthPixels * 0.8f).toInt().coerceAtMost(dp(ctx, 720)),
+                (metrics.widthPixels * 0.9f).toInt().coerceAtMost(dp(ctx, 1000)),
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
         }
@@ -443,6 +485,12 @@ object HighlightDialogs {
             }
             setStroke(dp(context, if (selected) 3 else 1), if (selected) stroke else (stroke and 0x00FFFFFF) or 0x40000000)
         }
+
+    private fun themeColor(context: Context, attr: Int): Int {
+        val tv = TypedValue()
+        context.theme.resolveAttribute(attr, tv, true)
+        return if (tv.resourceId != 0) context.getColor(tv.resourceId) else tv.data
+    }
 
     private fun selectableBackground(context: Context, borderless: Boolean = false) = TypedValue().let { tv ->
         context.theme.resolveAttribute(if (borderless) android.R.attr.selectableItemBackgroundBorderless else android.R.attr.selectableItemBackground, tv, true)
