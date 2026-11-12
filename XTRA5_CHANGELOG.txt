@@ -8,6 +8,10 @@ Fixed
 - Landscape color picker: the Saved / Presets color circles sat much higher than the rest of
   the dialog. All three columns now line up at the top, and the colors column is only as tall as
   its contents (it scrolls only if taller than the screen).
+
+Changed
+- Landscape color picker: Saved and Preset color circles are laid out 5 across (was 4), so the
+  grid is about as wide as the "Saved (long-press to remove)" label.
 ========================================
 Xtra5 1.21.0 (2026-11-12)
 Based on official Xtra 0ab697d (Xtra 2.60.10)

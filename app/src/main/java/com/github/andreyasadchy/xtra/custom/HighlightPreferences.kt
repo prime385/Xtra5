@@ -235,8 +235,8 @@ object HighlightDialogs {
         }
         val wheel = ColorWheelView(ctx)
         val swatches = ArrayList<Pair<View, Int>>()
-        // Landscape: color circles in a grid 4 across; portrait: one scrollable row.
-        fun circleGrid() = GridLayout(ctx).apply { columnCount = if (landscape) 4 else 99 }
+        // Landscape: color circles in a grid 5 across; portrait: one scrollable row.
+        fun circleGrid() = GridLayout(ctx).apply { columnCount = if (landscape) 5 else 99 }
         fun circleParams() = GridLayout.LayoutParams().apply {
             width = dp(ctx, 32); height = dp(ctx, 32)
             setMargins(dp(ctx, 4), dp(ctx, 4), dp(ctx, 4), dp(ctx, 4))
@@ -422,7 +422,7 @@ object HighlightDialogs {
             }
         }
         val content = if (landscape) {
-            // Wheel | preview, hex and sliders | saved and preset colors (4 across). Only the
+            // Wheel | preview, hex and sliders | saved and preset colors (5 across). Only the
             // colors column scrolls, if it is ever taller than the screen.
             val colors = MaxHeightScrollView(ctx, (metrics.heightPixels - dp(ctx, 170)).coerceAtLeast(dp(ctx, 200))).apply {
                 addView(LinearLayout(ctx).apply {
