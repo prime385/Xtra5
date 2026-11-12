@@ -34,6 +34,7 @@
     <item name="xtra5_narrow_cards" type="id" />
     <item name="xtra5_fixed_top_bar" type="id" />
     <item name="xtra5_refresh" type="id" />
+    <item name="xtra5_sync_emotes" type="id" />
     <string name="xtra5_stream_cards" translatable="false">Stream cards (Xtra5)</string>
     <string name="xtra5_card_name_size" translatable="false">Streamer name size (sp)</string>
     <string name="xtra5_card_category_size" translatable="false">Category size (sp)</string>
@@ -62,4 +63,6 @@
     <string name="xtra5_top_bar" translatable="false">Top bar (Xtra5)</string>
     <string name="xtra5_fixed_top_bar" translatable="false">Fixed top bar</string>
     <string name="xtra5_fixed_top_bar_summary" translatable="false">Keep the title bar, section tabs and sort bar in place while lists scroll. Applies to screens opened after changing it</string>
+    <string name="xtra5_sync_emotes" translatable="false">Sync animated emotes</string>
+    <string name="xtra5_sync_emotes_summary" translatable="false">All copies of the same animated emote play in step. Applies to newly loaded messages</string>
 </resources>

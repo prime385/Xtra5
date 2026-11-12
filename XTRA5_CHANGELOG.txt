@@ -1,6 +1,15 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.19.0 (2026-11-12)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Sync animated emotes (Settings > Chat > Chat appearance, on by default): every copy of the
+  same animated emote in chat plays the same shared animation, so they move in step instead of
+  each starting when its message arrived. Also saves memory and CPU. Works with all image
+  library options. 7TV overlay (zero-width) emotes are not synced yet.
+========================================
 Xtra5 1.18.3 (2026-11-11)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

@@ -837,6 +837,7 @@ object ChatAdapterUtils {
                     (imageSize * widthRatio).toInt() to imageSize
                 }
                 result.setBounds(0, 0, size.first, size.second)
+                @Suppress("NAME_SHADOWING") val result = if (image.overlayEmote == null) com.github.andreyasadchy.xtra.custom.EmoteSync.sync(itemView.context, result, image, itemView, animateGifs) else result // Xtra5 custom
                 if (result is Animatable && image.isAnimated && animateGifs) {
                     result.callback = object : Drawable.Callback {
                         override fun unscheduleDrawable(who: Drawable, what: Runnable) {

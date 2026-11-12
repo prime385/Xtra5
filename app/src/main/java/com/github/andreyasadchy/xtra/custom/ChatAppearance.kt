@@ -40,6 +40,7 @@ object ChatAppearance {
 
     /** Called once when the chat list is set up. */
     fun apply(recyclerView: RecyclerView) {
+        EmoteSync.attachTo(recyclerView)
         val prefs = recyclerView.context.prefs()
         val spacing = prefs.getInt(PREF_SPACING, DEFAULT_SPACING).coerceIn(1, 50)
         val lines = prefs.getBoolean(PREF_LINES, false)

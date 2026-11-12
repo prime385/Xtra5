@@ -391,6 +391,14 @@
             app:showSeekBarValue="true"
             app:singleLineTitle="false" />
 
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="xtra5_sync_emotes"
+            android:summary="@string/xtra5_sync_emotes_summary"
+            android:title="@string/xtra5_sync_emotes"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
         <ListPreference
             android:defaultValue="default"
             android:entries="@array/xtra5_chat_font_entries"
