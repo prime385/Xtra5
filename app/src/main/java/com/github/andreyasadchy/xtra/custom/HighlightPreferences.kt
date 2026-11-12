@@ -424,7 +424,7 @@ object HighlightDialogs {
         val content = if (landscape) {
             // Wheel | preview, hex and sliders | saved and preset colors (4 across). Only the
             // colors column scrolls, if it is ever taller than the screen.
-            val colors = ScrollView(ctx).apply {
+            val colors = MaxHeightScrollView(ctx, (metrics.heightPixels - dp(ctx, 170)).coerceAtLeast(dp(ctx, 200))).apply {
                 addView(LinearLayout(ctx).apply {
                     orientation = LinearLayout.VERTICAL
                     addView(savedLabel)
@@ -435,11 +435,11 @@ object HighlightDialogs {
             }
             LinearLayout(ctx).apply {
                 orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
+                gravity = Gravity.TOP // all three columns start at the same height
                 setPadding(dp(ctx, 20), dp(ctx, 4), dp(ctx, 20), 0)
                 addView(wheel, LinearLayout.LayoutParams(wheel.maxSizePx, wheel.maxSizePx).apply { marginEnd = dp(ctx, 20) })
                 addView(controls, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-                addView(colors, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, (metrics.heightPixels - dp(ctx, 170)).coerceAtLeast(dp(ctx, 200))).apply { marginStart = dp(ctx, 20) })
+                addView(colors, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { marginStart = dp(ctx, 20) })
             }
         } else {
             LinearLayout(ctx).apply {
@@ -485,6 +485,13 @@ object HighlightDialogs {
             }
             setStroke(dp(context, if (selected) 3 else 1), if (selected) stroke else (stroke and 0x00FFFFFF) or 0x40000000)
         }
+
+    /** A ScrollView that is only as tall as its content, up to [maxHeight] (then it scrolls). */
+    private class MaxHeightScrollView(context: Context, private val maxHeight: Int) : ScrollView(context) {
+        override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+            super.onMeasure(widthMeasureSpec, View.MeasureSpec.makeMeasureSpec(maxHeight, View.MeasureSpec.AT_MOST))
+        }
+    }
 
     private fun themeColor(context: Context, attr: Int): Int {
         val tv = TypedValue()
