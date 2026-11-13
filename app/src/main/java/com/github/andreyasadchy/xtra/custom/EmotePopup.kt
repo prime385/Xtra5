@@ -26,7 +26,7 @@ object EmotePopup {
 
     private const val GAP_DP = 4
     private const val MIN_WIDTH_DP = 200
-    private const val PANEL_MAX_WIDTH_DP = 640 // Material's bottom sheet max width
+    private const val PANEL_WIDTH_DP = 420 // narrower than Material's 640dp, so it sits against the chat
 
     fun register(activity: MainActivity) {
         activity.supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
@@ -54,7 +54,7 @@ object EmotePopup {
         val available = chatLeft - parentLeft - (GAP_DP * density).toInt()
         // Only when the chat is beside the video with room to its left.
         if (chatLeft <= parentLeft || available < MIN_WIDTH_DP * density) return
-        val panelWidth = minOf((PANEL_MAX_WIDTH_DP * density).toInt(), available)
+        val panelWidth = minOf((PANEL_WIDTH_DP * density).toInt(), available)
         val panelLeft = available - panelWidth
         val width = if (centred) minOf(if (sheet.width > 0) sheet.width else panelWidth, panelWidth) else panelWidth
         val left = if (centred) panelLeft + (panelWidth - width) / 2 else panelLeft

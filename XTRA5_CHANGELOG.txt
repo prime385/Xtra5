@@ -1,6 +1,14 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.27.6 (2026-11-13)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Conversation and reply popups beside the chat stretched from the left edge of the screen to
+  the chat when the space was narrower than their usual 640dp width. They are now 420dp wide
+  with their right edge just left of the chat; the emote popup is centred on the same area.
+========================================
 Xtra5 1.27.5 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
