@@ -1,6 +1,17 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.30.0 (2026-11-13)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Changed
+- Highlighted users: tapping any color circle opens the color picker directly - a group's
+  circle changes the group color, a user's circle changes that user's color. For a user in a
+  group, pressing OK asks "<name> will be moved to Ungrouped" (OK / Cancel).
+- Tapping a user's name shows Rename, Move to... and Remove. Rename keeps the user in the same
+  group or with the same color. The "Own color (moves to Ungrouped)" option is gone.
+- Groups show a folder icon next to their color circle.
+========================================
 Xtra5 1.29.0 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
