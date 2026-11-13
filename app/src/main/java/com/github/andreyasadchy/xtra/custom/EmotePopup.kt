@@ -61,7 +61,9 @@ object EmotePopup {
         BottomSheetBehavior.from(sheet).maxWidth = width
         val params = sheet.layoutParams as? CoordinatorLayout.LayoutParams ?: return
         params.width = width
-        params.gravity = Gravity.START or Gravity.BOTTOM
+        // TOP, as the bottom sheet expects: it positions from the top and then slides up.
+        // (BOTTOM pushed the popups off the bottom of the screen in 1.27.2.)
+        params.gravity = Gravity.START or Gravity.TOP
         params.leftMargin = left
         sheet.layoutParams = params
     }

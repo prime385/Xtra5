@@ -1,6 +1,16 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.27.4 (2026-11-13)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Message popup (conversation history), reply-thread popup and emote popup didn't appear in
+  landscape after 1.27.2 (they were placed off the bottom of the screen). They now open beside
+  the chat as intended.
+- Battery percentage now returns to full opacity together with the player controls' fade-in
+  when you tap, instead of after a delay.
+========================================
 Xtra5 1.27.3 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

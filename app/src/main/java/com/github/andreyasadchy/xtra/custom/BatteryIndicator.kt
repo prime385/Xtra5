@@ -174,14 +174,15 @@ object BatteryIndicator {
             }
         }
         // Opacity follows the controls: full while showing, faded 4 s after they were last shown.
-        val controlsVisible = indicator.controls.isVisible && indicator.controls.alpha > 0f
+        // The controls fade in from alpha 0 when they appear, so only their visibility counts.
+        val controlsVisible = indicator.controls.isVisible
         if (controlsVisible != indicator.lastControlsVisible) {
             indicator.lastControlsVisible = controlsVisible
             text.removeCallbacks(indicator.fade)
             if (controlsVisible) {
                 indicator.controlsShownAt = System.currentTimeMillis()
                 text.animate().cancel()
-                text.alpha = 1f
+                text.animate().alpha(1f).setDuration(250L).start() // together with the controls' fade-in
             } else {
                 val elapsed = System.currentTimeMillis() - indicator.controlsShownAt
                 text.postDelayed(indicator.fade, (FADE_AFTER_MS - elapsed).coerceAtLeast(0L))
