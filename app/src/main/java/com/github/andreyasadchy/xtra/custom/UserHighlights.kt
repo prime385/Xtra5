@@ -37,6 +37,9 @@ object UserHighlights {
         return login?.let { map[it.lowercase()] } ?: name?.let { map[it.lowercase()] }
     }
 
+    /** Saved highlight color for [login] (lower case), or null. */
+    fun colorForLogin(context: Context, login: String): Int? = load(context)[login]
+
     private fun load(context: Context): Map<String, Int> {
         val prefs = context.prefs()
         val source = prefs.getString(PREF_USERS, null)

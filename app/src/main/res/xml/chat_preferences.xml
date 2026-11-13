@@ -371,6 +371,18 @@
             app:singleLineTitle="false" />
 
         <SeekBarPreference
+            android:defaultValue="20"
+            android:dependency="xtra5_chat_lines"
+            android:key="xtra5_chat_line_opacity"
+            android:max="100"
+            android:title="@string/xtra5_chat_line_opacity"
+            app:iconSpaceReserved="false"
+            app:min="5"
+            app:seekBarIncrement="1"
+            app:showSeekBarValue="true"
+            app:singleLineTitle="false" />
+
+        <SeekBarPreference
             android:defaultValue="4"
             android:key="xtra5_chat_spacing"
             android:max="50"

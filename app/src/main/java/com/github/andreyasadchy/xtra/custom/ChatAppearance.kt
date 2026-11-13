@@ -29,6 +29,7 @@ import com.github.andreyasadchy.xtra.util.prefs
 object ChatAppearance {
 
     const val PREF_LINES = "xtra5_chat_lines"
+    const val PREF_LINE_OPACITY = "xtra5_chat_line_opacity"
     const val PREF_SPACING = "xtra5_chat_spacing"
     const val PREF_FONT = "xtra5_chat_font"
     const val PREF_USERNAME_SIZE = "xtra5_chat_username_size"
@@ -49,6 +50,7 @@ object ChatAppearance {
     /** Called once when the chat list is set up. */
     fun apply(recyclerView: RecyclerView) {
         EmoteSync.attachTo(recyclerView)
+        ChatLive.register(recyclerView)
         val prefs = recyclerView.context.prefs()
         val spacing = prefs.getInt(PREF_SPACING, DEFAULT_SPACING).coerceIn(1, 50)
         val lines = prefs.getBoolean(PREF_LINES, false)
@@ -103,6 +105,9 @@ object ChatAppearance {
     /** Marks grey "replying to" rows so no spacing or line separates them from their message. */
     fun markRow(itemView: View, chatMessage: ChatMessage) {
         itemView.setTag(R.id.xtra5_reply_row, chatMessage.type == ChatMessage.REPLY_MESSAGE)
+        // Sender, for live highlight previews (ChatLive.previewUser).
+        itemView.setTag(R.id.xtra5_row_login, if (chatMessage.type == ChatMessage.REPLY_MESSAGE) null else chatMessage.userLogin?.lowercase())
+        itemView.setTag(R.id.xtra5_row_preview, null)
     }
 
     private fun isReplyRow(view: View) = view.getTag(R.id.xtra5_reply_row) == true
@@ -126,7 +131,8 @@ object ChatAppearance {
             val context = recyclerView.context
             context.theme.resolveAttribute(android.R.attr.textColorPrimary, tv, true)
             val textColor = if (tv.resourceId != 0) context.getColorStateList(tv.resourceId).defaultColor else tv.data
-            color = (textColor and 0x00FFFFFF) or 0x33000000 // ~20% of the text color
+            val opacity = recyclerView.context.prefs().getInt(PREF_LINE_OPACITY, 20).coerceIn(5, 100)
+            color = (textColor and 0x00FFFFFF) or ((opacity * 255 / 100) shl 24)
             strokeWidth = 1f
         }
 

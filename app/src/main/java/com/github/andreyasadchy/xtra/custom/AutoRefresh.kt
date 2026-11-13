@@ -59,7 +59,9 @@ object AutoRefresh {
             override fun onActivityStarted(a: Activity) {
                 if (a is MainActivity) main = WeakReference(a)
                 startedActivities++
-                // Back from another screen of the app (e.g. Settings): play again if it was playing.
+                // Back from another screen of the app (e.g. Settings): show changed highlights.
+                if (a is MainActivity && startedActivities > 1) handler.post { ChatLive.refreshChat() }
+                // ...and play again if it was playing.
                 if (a is MainActivity && startedActivities > 1 && playingWhenLeft) {
                     playingWhenLeft = false
                     handler.postDelayed({

@@ -1,6 +1,25 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.28.0 (2026-11-13)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Highlighted users button in the player's top-right controls (palette icon), between the
+  quality cog and the Settings button: opens the Highlighted users list over the video. With the
+  chat beside the video, the list and the color picker open just left of the chat so it stays
+  visible.
+- Live highlight changes in the real chat: while the color picker is open, that user's messages
+  on screen change color as you pick (OK keeps it, Cancel puts it back); adding or removing a
+  user, and changes made in Settings, show in the chat straight away.
+- Line opacity slider for the lines between messages (Settings > Chat > Chat appearance,
+  5-100%, default 20% as before).
+
+Changed
+- Color picker preview uses your chat text size settings and the chat's actual background, so
+  it matches the real chat more closely. Beside the chat it uses the stacked layout unless
+  there is room for three columns.
+========================================
 Xtra5 1.27.6 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

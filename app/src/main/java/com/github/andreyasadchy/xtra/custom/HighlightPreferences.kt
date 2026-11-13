@@ -100,6 +100,7 @@ object HighlightDialogs {
         fun save() {
             prefs.edit { putString(UserHighlights.PREF_USERS, UserHighlights.serializeEntries(entries)) }
             onChanged()
+            ChatLive.refreshChat() // the open chat shows the change right away
         }
         val builder = context.getAlertDialogBuilder()
         val ctx = builder.context
@@ -127,7 +128,7 @@ object HighlightDialogs {
                     background = selectableBackground(ctx)
                     isClickable = true
                     setOnClickListener {
-                        showColorPicker(ctx, user, user, rowColor) { picked ->
+                        showColorPicker(ctx, user, user, rowColor, liveUser = user) { picked ->
                             entries[index] = user to picked
                             save()
                             render()
@@ -161,12 +162,13 @@ object HighlightDialogs {
             .setPositiveButton("Done", null)
             .setNeutralButton("Add user", null)
             .show()
+        ChatLive.placeBesideChat(dialog, dp(ctx, 420))
         // Keep the list open after adding a user.
         dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
             showAddUser(ctx) { name ->
                 if (entries.none { it.first.equals(name, true) }) {
                     val initial = UserHighlights.getDefaultColor(ctx)
-                    showColorPicker(ctx, name, name, initial) { picked ->
+                    showColorPicker(ctx, name, name, initial, liveUser = name) { picked ->
                         entries.add(name to picked)
                         save()
                         render()
@@ -196,10 +198,11 @@ object HighlightDialogs {
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+            .also { ChatLive.placeBesideChat(it, dp(ctx, 420)) }
         input.requestFocus()
     }
 
-    fun showColorPicker(context: Context, title: String, previewName: String, initial: Int, onPicked: (Int) -> Unit) {
+    fun showColorPicker(context: Context, title: String, previewName: String, initial: Int, liveUser: String? = null, onPicked: (Int) -> Unit) {
         val builder = context.getAlertDialogBuilder()
         val ctx = builder.context
         val hsv = FloatArray(3).also { Color.colorToHSV(initial, it) }
@@ -207,7 +210,10 @@ object HighlightDialogs {
         var updating = false
 
         val metrics = ctx.resources.displayMetrics
-        val landscape = metrics.widthPixels > metrics.heightPixels
+        // Beside an open chat the picker only gets the space left of it: three columns only if
+        // that space is wide enough, otherwise the stacked layout.
+        val besideChat = ChatLive.widthLeftOfChat(ctx)
+        val landscape = metrics.widthPixels > metrics.heightPixels && (besideChat == null || besideChat >= dp(ctx, 720))
 
         // Chat preview: a normal message, the highlighted one, another normal message, styled like
         // the real chat (background, font, username size and bold setting).
@@ -220,14 +226,17 @@ object HighlightDialogs {
                 ChatAppearance.styleUserName(ctx, this, 0, name.length)
                 append(": Hello chat!")
             }
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            // Same text size as the chat (chat text size x chat size modifier).
+            val chatTextSize = (ctx.prefs().getString("chat_text_size", "14")?.toFloatOrNull() ?: 14f) *
+                (ctx.prefs().getInt("chat_size_modifier", 100) / 100f)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, chatTextSize)
             ChatAppearance.chatTypeface(ctx)?.let { typeface = it }
             setPadding(dp(ctx, 8), dp(ctx, 4), dp(ctx, 8), dp(ctx, 4))
         }
         val preview = chatLine(previewName, 0xFF1E90FF.toInt())
         val previewBox = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(themeColor(ctx, android.R.attr.colorBackground))
+            setBackgroundColor(ChatLive.chatBackground() ?: themeColor(ctx, android.R.attr.colorBackground))
             setPadding(0, dp(ctx, 4), 0, dp(ctx, 4))
             addView(chatLine("chatter_one", 0xFFFF7F50.toInt()))
             addView(preview, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
@@ -289,6 +298,7 @@ object HighlightDialogs {
         fun refresh(source: Any?) {
             updating = true
             val color = current()
+            liveUser?.let { ChatLive.previewUser(ctx, it.lowercase(), color) } // the real chat, live
             preview.setBackgroundColor(color)
             val rgb = color and 0xFFFFFF
             swatches.forEach { (view, c) -> view.background = swatch(ctx, c or (0xFF shl 24), 32, selected = c == rgb) }
@@ -398,7 +408,7 @@ object HighlightDialogs {
         wheel.maxSizePx = if (landscape) {
             (metrics.heightPixels - dp(ctx, 190)).coerceIn(dp(ctx, 140), dp(ctx, 260))
         } else {
-            (metrics.heightPixels - dp(ctx, 590)).coerceIn(dp(ctx, 120), dp(ctx, 240))
+            (metrics.heightPixels - dp(ctx, if (besideChat != null) 470 else 590)).coerceIn(dp(ctx, 120), dp(ctx, 240))
         }
         fun matchWidth(top: Int = 0) = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = top }
         val presetsLabel = TextView(ctx).apply {
@@ -456,7 +466,10 @@ object HighlightDialogs {
             .setPositiveButton(android.R.string.ok) { _, _ -> onPicked(current()) }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
-        if (landscape) {
+        dialog.setOnDismissListener { if (liveUser != null) ChatLive.refreshChat() } // OK saved it; Cancel puts it back
+        if (besideChat != null) {
+            ChatLive.placeBesideChat(dialog, if (landscape) dp(ctx, 1000) else dp(ctx, 460))
+        } else if (landscape) {
             dialog.window?.setLayout(
                 (metrics.widthPixels * 0.9f).toInt().coerceAtMost(dp(ctx, 1000)),
                 ViewGroup.LayoutParams.WRAP_CONTENT
