@@ -228,7 +228,7 @@ class StreamsAdapter(
                     } else {
                         tagsLayout.visibility = View.GONE
                     }
-                    com.github.andreyasadchy.xtra.custom.StreamCards.apply(binding) // Xtra5 custom
+                    com.github.andreyasadchy.xtra.custom.StreamCards.apply(binding, item, fragment) // Xtra5 custom
                 }
             }
         }

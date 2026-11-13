@@ -4,13 +4,18 @@ import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.Toast
+import androidx.fragment.app.Fragment
 import com.github.andreyasadchy.xtra.databinding.FragmentStreamsListItemBinding
+import com.github.andreyasadchy.xtra.model.ui.Stream
+import com.github.andreyasadchy.xtra.ui.main.MainActivity
 import com.github.andreyasadchy.xtra.util.prefs
 
 /**
  * Xtra5 custom: live stream card layout (VOD and clip cards are unchanged).
  * Under the thumbnail: username (bold), then category (bold), then title (regular weight). No tags.
- * Text sizes come from Settings > UI > Stream cards (10-20sp).
+ * Text sizes come from Settings > UI > Stream cards (10-20sp). Long-press opens the stream in
+ * audio-only quality, just this once (see AudioOnlyOnce).
  *
  * Kept in its own package so upstream Xtra updates can be merged without conflicts.
  * Upstream hook: StreamsAdapter.PagingViewHolder.bind (end of the card setup).
@@ -26,7 +31,15 @@ object StreamCards {
 
     private val regular = Typeface.create("sans-serif", Typeface.NORMAL)
 
-    fun apply(binding: FragmentStreamsListItemBinding) {
+    fun apply(binding: FragmentStreamsListItemBinding, stream: Stream, fragment: Fragment) {
+        // Long-press: open this stream in audio-only quality, just this once.
+        binding.root.setOnLongClickListener {
+            val activity = fragment.activity as? MainActivity ?: return@setOnLongClickListener false
+            AudioOnlyOnce.request()
+            Toast.makeText(activity, "Opening audio only", Toast.LENGTH_SHORT).show()
+            activity.startStream(stream)
+            true
+        }
         with(binding) {
             tagsLayout.visibility = View.GONE
             // Move the title below the username and category and set the weights (once per card view).

@@ -1,6 +1,15 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.27.0 (2026-11-13)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Long-press a live stream card (touch or pointer) to open that stream in audio-only quality
+  ("Opening audio only"). Just this once: the default and saved quality are not changed, and the
+  next stream opens in your usual quality. Works on every live stream card (Following, Popular,
+  category pages, search). Holding OK on the TV remote still refreshes, as before.
+========================================
 Xtra5 1.26.0 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

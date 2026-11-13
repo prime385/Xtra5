@@ -176,6 +176,7 @@ abstract class BasePlaybackService : LifecycleService() {
             VideoQuality.CHAT_ONLY_QUALITY -> qualities?.find { it.name == VideoQuality.CHAT_ONLY_QUALITY }
             else -> findQuality(defaultQuality)
         } ?: qualities?.firstOrNull()
+        if (type == STREAM && com.github.andreyasadchy.xtra.custom.AudioOnlyOnce.consume()) qualities?.find { it.name == VideoQuality.AUDIO_ONLY_QUALITY }?.let { quality = it } // Xtra5 custom
     }
 
     private fun findQuality(targetQualityString: String?): VideoQuality? {
