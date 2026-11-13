@@ -9,6 +9,11 @@ Fixed
   simply slid sideways so their right edge is a few pixels left of the chat (re-applied whenever
   they lay themselves out). Replaces the 1.27.2-1.27.6 resizing, which could end up in the wrong
   place.
+
+Changed
+- Highlight dialogs opened beside the chat (Highlighted users, Add user, color picker) no longer
+  darken the chat: only the video is dimmed while they are open, so the chat shows the real
+  colors.
 ========================================
 Xtra5 1.28.0 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)

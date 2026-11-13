@@ -2,13 +2,19 @@ package com.github.andreyasadchy.xtra.custom
 
 import android.app.Dialog
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.res.Configuration
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.FrameLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.github.andreyasadchy.xtra.R
+import com.github.andreyasadchy.xtra.ui.main.MainActivity
+import com.github.andreyasadchy.xtra.ui.player.PlayerFragment
 import java.lang.ref.WeakReference
 
 /**
@@ -85,15 +91,55 @@ object ChatLive {
         return available.takeIf { it > (200 * context.resources.displayMetrics.density) }
     }
 
-    /** Puts [dialog] just left of the chat, at most [maxWidth] wide. No-op without a chat beside. */
+    /**
+     * Puts [dialog] just left of the chat, at most [maxWidth] wide. No-op without a chat beside.
+     * The chat stays bright: Android's whole-screen dimming is switched off and only the video is
+     * dimmed (same strength) while the dialog is open.
+     */
     fun placeBesideChat(dialog: Dialog, maxWidth: Int) {
         val window = dialog.window ?: return
         val available = widthLeftOfChat(dialog.context) ?: return
         val width = minOf(maxWidth, available)
+        val dim = window.attributes.dimAmount.takeIf { it > 0f } ?: 0.32f
+        window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
         window.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
         window.attributes = window.attributes.apply {
             gravity = Gravity.START or Gravity.CENTER_VERTICAL
             x = available - width
         }
+        dimVideo(dialog, dim)
     }
+
+    // One shared dim layer over the video, kept while any dialog beside the chat is open.
+    private var videoDim: WeakReference<View>? = null
+    private var dimUsers = 0
+
+    private fun dimVideo(dialog: Dialog, amount: Float) {
+        val activity = generateSequence(dialog.context) { (it as? ContextWrapper)?.baseContext }.firstNotNullOfOrNull { it as? MainActivity } ?: return
+        val video = (activity.playerFragment as? PlayerFragment)?.view?.findViewById<FrameLayout>(R.id.playerLayout) ?: return
+        val layer = videoDim?.get()?.takeIf { it.parent === video } ?: View(video.context).apply {
+            setBackgroundColor(Color.argb((amount * 255).toInt(), 0, 0, 0))
+            isClickable = false
+            isFocusable = false
+            video.addView(this, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+            videoDim = WeakReference(this)
+            dimUsers = 0
+        }
+        layer.bringToFront()
+        dimUsers++
+        window(dialog)?.decorView?.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: View) {}
+            override fun onViewDetachedFromWindow(v: View) {
+                v.removeOnAttachStateChangeListener(this)
+                dimUsers--
+                if (dimUsers <= 0) {
+                    (layer.parent as? ViewGroup)?.removeView(layer)
+                    videoDim = null
+                    dimUsers = 0
+                }
+            }
+        })
+    }
+
+    private fun window(dialog: Dialog) = dialog.window
 }
