@@ -1,6 +1,20 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.27.2 (2026-11-13)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Tapping an emote or badge in the main chat now opens its details popup (1.25.0 didn't work:
+  official Xtra doesn't make emotes tappable in the main chat, only inside the message popup).
+  Tapping a username or the message text still opens the message popup.
+
+Changed
+- With the chat beside the video (landscape), chat popups open next to the chat instead of in
+  the centre: the message popup (conversation history) and the reply-thread popup with their
+  right edge a few pixels left of the chat, and the emote details popup centred on that same
+  area. In portrait they open in their normal place.
+========================================
 Xtra5 1.27.1 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
