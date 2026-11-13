@@ -1,6 +1,14 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.27.1 (2026-11-13)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Battery percentage never appeared: the battery level was only read when the player came on
+  screen, which had already happened by the time the percentage was added. It is now read
+  straight away.
+========================================
 Xtra5 1.27.0 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

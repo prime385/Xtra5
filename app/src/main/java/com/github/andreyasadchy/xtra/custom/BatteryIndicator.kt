@@ -85,16 +85,26 @@ object BatteryIndicator {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(c: Context, intent: Intent) = updateBattery(indicator, intent)
         }
+        var listening = false
+        fun startListening() {
+            if (listening) return
+            listening = true
+            context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))?.let { updateBattery(indicator, it) }
+        }
         text.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(v: View) {
-                context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))?.let { updateBattery(indicator, it) }
-            }
+            override fun onViewAttachedToWindow(v: View) = startListening()
 
             override fun onViewDetachedFromWindow(v: View) {
-                try { context.unregisterReceiver(receiver) } catch (_: Exception) {}
+                if (listening) {
+                    listening = false
+                    try { context.unregisterReceiver(receiver) } catch (_: Exception) {}
+                }
                 text.removeCallbacks(indicator.fade)
             }
         })
+        // The player is usually already on screen when this runs, so the attach callback above
+        // has already happened for the text: start reading the battery now.
+        if (text.isAttachedToWindow) startListening()
         // Fullscreen / controls changes.
         container.viewTreeObserver.addOnGlobalLayoutListener { update(indicator) }
     }
