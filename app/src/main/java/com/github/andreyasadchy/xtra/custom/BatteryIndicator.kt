@@ -158,13 +158,19 @@ object BatteryIndicator {
             text.alpha = 1f
             indicator.lastControlsVisible = !indicator.controls.isVisible // force the state below
         }
-        // Line up with the top-right buttons.
-        val buttonsTop = indicator.buttons.top + indicator.controls.top
-        val top = buttonsTop + (indicator.buttons.height - text.height) / 2
-        (text.layoutParams as? FrameLayout.LayoutParams)?.let {
-            if (it.topMargin != top && top >= 0) {
-                it.topMargin = top
-                text.layoutParams = it
+        // Line up with the top-right buttons. While the controls are hidden the button row may never
+        // have been laid out, so use its layout values (top margin, 40dp buttons) instead of its
+        // current position.
+        val density = context.resources.displayMetrics.density
+        val rowTop = (indicator.buttons.layoutParams as? ViewGroup.MarginLayoutParams)?.topMargin ?: (5 * density).toInt()
+        val rowHeight = if (indicator.buttons.height > 0) indicator.buttons.height else (40 * density).toInt()
+        if (text.height > 0) {
+            val top = (rowTop + (rowHeight - text.height) / 2).coerceAtLeast(0)
+            (text.layoutParams as? FrameLayout.LayoutParams)?.let {
+                if (it.topMargin != top) {
+                    it.topMargin = top
+                    text.layoutParams = it
+                }
             }
         }
         // Opacity follows the controls: full while showing, faded 4 s after they were last shown.

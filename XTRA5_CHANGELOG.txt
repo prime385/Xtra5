@@ -1,6 +1,13 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.27.3 (2026-11-13)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Battery percentage started at the very top-right and jumped down when the controls were first
+  shown. It now lines up with the top-right player buttons from the start.
+========================================
 Xtra5 1.27.2 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
