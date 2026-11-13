@@ -60,8 +60,9 @@ object EmotePopup {
         val sheetLeft = IntArray(2).also { sheet.getLocationOnScreen(it) }[0] - sheet.translationX.toInt() // without our slide
         val gap = (GAP_DP * sheet.resources.displayMetrics.density).toInt()
         val target = (chatLeft - gap - (sheetLeft + sheet.width)).toFloat()
-        // Only slide left, and only if the chat is actually to the right of the popup's normal spot.
-        val translation = if (chatLeft > gap && target < 0f) target else 0f
+        // Slide either way so the right edge is just left of the chat (1.28.1 only slid left, so
+        // with a narrow chat the popup stayed centred).
+        val translation = if (chatLeft > gap) target else 0f
         if (sheet.translationX != translation) sheet.translationX = translation
     }
 }

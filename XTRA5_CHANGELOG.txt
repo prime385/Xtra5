@@ -1,6 +1,14 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.28.2 (2026-11-13)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Conversation, reply-thread and emote popups stayed in the centre in 1.28.1 when the chat was
+  narrow (they were only allowed to move left). They now move whichever way puts their right
+  edge a few pixels left of the chat.
+========================================
 Xtra5 1.28.1 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
