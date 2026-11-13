@@ -46,6 +46,7 @@ object UpstreamUpdates {
         (activity as? com.github.andreyasadchy.xtra.ui.main.MainActivity)?.let {
             AutoRefresh.register(it) // Xtra5: auto refresh / auto play
             PlayerExtras.register(it) // Xtra5: Settings button in the player controls
+            BatteryIndicator.register(it) // Xtra5: battery percentage in fullscreen video
         }
         val prefs = activity.prefs()
         // Xtra5: don't pause when headphones / Bluetooth audio disconnect (see AudioGuard).

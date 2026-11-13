@@ -1,6 +1,17 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.26.0 (2026-11-13)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Battery percentage in fullscreen video (Settings > Player > Battery percentage, off by
+  default): shown at the top-right corner of the video, right of the ⋮ menu (the top-right
+  buttons move left to make room), with a white bolt while charging. It stays in place when the
+  controls hide: full opacity while they show, then fades to your chosen opacity (0-100%, default
+  40%) 4 seconds after the screen was last touched. Hidden outside fullscreen, on devices without
+  a battery, and entirely when TV mode shortcuts are on (buttons stay in their normal place).
+========================================
 Xtra5 1.25.0 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

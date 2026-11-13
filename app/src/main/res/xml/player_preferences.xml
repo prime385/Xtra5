@@ -143,4 +143,31 @@
 
     </PreferenceCategory>
 
+    <!-- Xtra5 custom: battery percentage -->
+    <PreferenceCategory
+        android:title="@string/xtra5_battery_category"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="xtra5_battery_show"
+            android:summary="@string/xtra5_battery_show_summary"
+            android:title="@string/xtra5_battery_show"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SeekBarPreference
+            android:defaultValue="40"
+            android:dependency="xtra5_battery_show"
+            android:key="xtra5_battery_faded_opacity"
+            android:max="100"
+            android:title="@string/xtra5_battery_faded_opacity"
+            app:iconSpaceReserved="false"
+            app:min="0"
+            app:seekBarIncrement="1"
+            app:showSeekBarValue="true"
+            app:singleLineTitle="false" />
+
+    </PreferenceCategory>
+
 </androidx.preference.PreferenceScreen>
