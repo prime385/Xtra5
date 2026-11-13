@@ -5,7 +5,11 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.content.Context
 import android.graphics.Typeface
+import android.annotation.SuppressLint
 import android.text.Spannable
+import android.text.Spanned
+import android.text.style.ClickableSpan
+import android.view.MotionEvent
 import android.text.style.RelativeSizeSpan
 import android.util.TypedValue
 import android.view.View
@@ -50,17 +54,50 @@ object ChatAppearance {
         val lines = prefs.getBoolean(PREF_LINES, false)
         recyclerView.addItemDecoration(Spacing(recyclerView, spacing, lines))
 
-        val family = fonts[prefs.getString(PREF_FONT, "default")]
-        if (family != null) {
-            val typeface = Typeface.create(family, Typeface.NORMAL)
-            recyclerView.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
-                override fun onChildViewAttachedToWindow(view: View) {
-                    (view as? TextView)?.let { if (it.typeface != typeface) it.typeface = typeface }
-                }
+        val typeface = fonts[prefs.getString(PREF_FONT, "default")]?.let { Typeface.create(it, Typeface.NORMAL) }
+        recyclerView.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
+            override fun onChildViewAttachedToWindow(view: View) {
+                val textView = view as? TextView ?: return
+                if (typeface != null && textView.typeface != typeface) textView.typeface = typeface
+                watchSpanTaps(textView)
+            }
 
-                override fun onChildViewDetachedFromWindow(view: View) {}
-            })
+            override fun onChildViewDetachedFromWindow(view: View) {}
+        })
+    }
+
+    /** Remembers whether the latest tap on a chat row landed on an emote, badge or link. */
+    @SuppressLint("ClickableViewAccessibility")
+    private fun watchSpanTaps(textView: TextView) {
+        if (textView.getTag(R.id.xtra5_span_tap_watch) == true) return
+        textView.setTag(R.id.xtra5_span_tap_watch, true)
+        textView.setOnTouchListener { v, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                v.setTag(R.id.xtra5_span_tap, hasClickableSpanAt(v as TextView, event.x, event.y))
+            }
+            false // normal handling continues (the emote's own popup still opens)
         }
+    }
+
+    private fun hasClickableSpanAt(textView: TextView, x: Float, y: Float): Boolean {
+        val text = textView.text as? Spanned ?: return false
+        val layout = textView.layout ?: return false
+        val px = x - textView.totalPaddingLeft + textView.scrollX
+        val py = y - textView.totalPaddingTop + textView.scrollY
+        val line = layout.getLineForVertical(py.toInt())
+        if (px < layout.getLineLeft(line) || px > layout.getLineRight(line)) return false
+        val offset = layout.getOffsetForHorizontal(line, px)
+        return text.getSpans(offset, offset, ClickableSpan::class.java).isNotEmpty()
+    }
+
+    /**
+     * Called at the start of the chat row's click handler: true when the tap was on an emote,
+     * badge or link, so only that item's own action runs (not the message popup).
+     */
+    fun tappedSpan(view: View): Boolean {
+        val tapped = view.getTag(R.id.xtra5_span_tap) == true
+        view.setTag(R.id.xtra5_span_tap, false) // D-pad / keyboard clicks never count as span taps
+        return tapped
     }
 
     /** Marks grey "replying to" rows so no spacing or line separates them from their message. */

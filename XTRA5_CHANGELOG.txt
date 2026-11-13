@@ -1,6 +1,17 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.25.0 (2026-11-13)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Changed
+- Tapping (or clicking with a pointer) an emote or badge in chat opens only its details popup,
+  not the message popup as well. Tapping a username or the message text still opens the message
+  popup with that user's messages and the conversation. Links behave the same way.
+- Coming back to the app after it was in the background or the TV / phone slept refreshes the
+  lists (every loaded section, current one scrolled to the top) if a main screen is visible -
+  no video open, or the video minimized. An open live stream still reloads as before.
+========================================
 Xtra5 1.24.0 (2026-11-12)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

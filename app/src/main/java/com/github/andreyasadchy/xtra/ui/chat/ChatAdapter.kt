@@ -254,6 +254,7 @@ class ChatAdapter(
                     ellipsize = null
                     TooltipCompat.setTooltipText(this, chatMessage.message ?: chatMessage.systemMsg)
                     setOnClickListener {
+                        if (com.github.andreyasadchy.xtra.custom.ChatAppearance.tappedSpan(this)) return@setOnClickListener // Xtra5 custom
                         if (selectionStart == -1 && selectionEnd == -1) {
                             selectedMessage = chatMessage
                             messageClickListener?.invoke(channelId)

@@ -14,8 +14,9 @@ import java.lang.ref.WeakReference
  * Xtra5 custom: automatic refreshes.
  *  - Minimizing the player while using the app refreshes every section of the screen behind it.
  *  - Coming back to the app after leaving it with no video on screen (not picture-in-picture)
- *    reloads an open live stream (minimized or full-size), like Restart player. VODs and clips
- *    are not reloaded.
+ *    reloads an open live stream (minimized or full-size), like Restart player (VODs and clips
+ *    are not reloaded), and refreshes the lists if a main screen is visible (no video, or the
+ *    video minimized).
  *  - Coming back from another screen of the app (e.g. Settings) plays the video again if it was
  *    playing before; maximizing a paused minimized video plays it (live streams jump to live).
  *
@@ -69,7 +70,7 @@ object AutoRefresh {
                 // was fully in the background (no video on screen).
                 if (startedActivities == 1 && wasInBackground) {
                     wasInBackground = false
-                    handler.postDelayed({ reloadLiveStream() }, RESUME_DELAY_MS)
+                    handler.postDelayed({ onReturnFromBackground() }, RESUME_DELAY_MS)
                 }
             }
 
@@ -95,11 +96,16 @@ object AutoRefresh {
     private var wasInBackground = false
     private var playingWhenLeft = false
 
-    private fun reloadLiveStream() {
+    /** After the app was in the background (or asleep). */
+    private fun onReturnFromBackground() {
         val activity = main?.get() ?: return
-        val player = activity.playerFragment as? PlayerFragment ?: return
-        if (!player.isAdded || player.view == null) return
-        if (!player.xtra5PlayerState().isLiveStream) return
-        player.restartPlayer()
+        val player = (activity.playerFragment as? PlayerFragment)?.takeIf { it.isAdded && it.view != null }
+        val state = player?.xtra5PlayerState()
+        // Refresh the lists when a main screen is visible: no video, or the video minimized.
+        if (state == null || !state.isMaximized) {
+            RefreshButton.refreshCurrentScreen(activity, showMessage = false)
+        }
+        // Reload an open live stream, minimized or full-size.
+        if (player != null && state?.isLiveStream == true) player.restartPlayer()
     }
 }
