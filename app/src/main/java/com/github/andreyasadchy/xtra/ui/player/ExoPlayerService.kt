@@ -1601,7 +1601,7 @@ class ExoPlayerService : BasePlaybackService() {
                     val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
                     val cellular = networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true
                     if ((!cellular && prefs().getString(C.PLAYER_DEFAULT_QUALITY, "saved") == "saved") || (cellular && prefs().getString(C.PLAYER_DEFAULT_CELLULAR_QUALITY, "saved") == "saved")) {
-                        prefs().edit { putString(C.PLAYER_QUALITY, quality.name) }
+                        if (!com.github.andreyasadchy.xtra.custom.AudioOnlyOnce.skipSave(quality.name)) prefs().edit { putString(C.PLAYER_QUALITY, quality.name) } // Xtra5 custom
                     }
                 }
             }

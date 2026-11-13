@@ -1,6 +1,15 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.27.5 (2026-11-13)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Opening a stream audio-only with a long-press no longer makes audio-only the saved quality
+  for every stream after it (with the default quality set to "saved", official Xtra saved it).
+  Picking a quality yourself in the quality menu still saves as normal. If your saved quality
+  got stuck on audio-only, pick your usual quality once in the player's quality menu.
+========================================
 Xtra5 1.27.4 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
