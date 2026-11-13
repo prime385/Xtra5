@@ -1,6 +1,15 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.28.1 (2026-11-13)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Conversation, reply-thread and emote popups beside the chat: back to their original size, and
+  simply slid sideways so their right edge is a few pixels left of the chat (re-applied whenever
+  they lay themselves out). Replaces the 1.27.2-1.27.6 resizing, which could end up in the wrong
+  place.
+========================================
 Xtra5 1.28.0 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
