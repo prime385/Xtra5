@@ -1,6 +1,23 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.29.0 (2026-11-13)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Highlight groups (Highlighted users, from the player button or Settings): "New group" creates
+  a named group with a color; every user added to it uses the group's color, and changing the
+  group color recolors all of them (live in the chat while picking). Groups can be renamed or
+  deleted (keeping their users as ungrouped, or removing them too).
+- Users can be moved between groups and Ungrouped. The group color is master: giving a grouped
+  user their own color moves them to Ungrouped with that color; moving them back into a group
+  makes them use the group color again. A user is in one place at a time.
+- "Add user" asks whether to add to a group or Ungrouped (with a color).
+
+Changed
+- Existing highlighted users are kept as Ungrouped. Tapping a user now shows options (color,
+  move, remove).
+========================================
 Xtra5 1.28.2 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

@@ -20,10 +20,32 @@ object UserHighlights {
 
     const val PREF_USERS = "xtra5_highlight_users"
     const val PREF_COLOR = "xtra5_highlight_color"
+    const val PREF_GROUPS = "xtra5_highlight_groups"
+
+    /** A named group; every member uses the group's color (the group color is master). */
+    class Group(var name: String, var color: Int, val members: MutableList<String>)
+
+    /** One group per line: URL-encoded name | #AARRGGBB | member,member,... */
+    fun parseGroups(source: String?): MutableList<Group> {
+        if (source.isNullOrBlank()) return mutableListOf()
+        return source.lines().mapNotNull { line ->
+            val parts = line.split('|')
+            if (parts.size < 2) return@mapNotNull null
+            val name = try { java.net.URLDecoder.decode(parts[0], "UTF-8") } catch (_: Exception) { parts[0] }
+            val color = parseColor(parts[1]) ?: return@mapNotNull null
+            val members = parts.getOrNull(2)?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }?.toMutableList() ?: mutableListOf()
+            Group(name, color, members)
+        }.toMutableList()
+    }
+
+    fun serializeGroups(groups: List<Group>): String = groups.joinToString("\n") { group ->
+        java.net.URLEncoder.encode(group.name, "UTF-8") + "|" + toHex(group.color) + "|" + group.members.joinToString(",")
+    }
     const val DEFAULT_COLOR = "#2196F3"
     private const val DEFAULT_ALPHA = 0x59 // ~35% so text stays readable
 
     private var cachedSource: String? = null
+    private var cachedGroups: String? = null
     private var cachedDefaultColor: String? = null
     private var cachedMap: Map<String, Int> = emptyMap()
 
@@ -43,11 +65,16 @@ object UserHighlights {
     private fun load(context: Context): Map<String, Int> {
         val prefs = context.prefs()
         val source = prefs.getString(PREF_USERS, null)
+        val groups = prefs.getString(PREF_GROUPS, null)
         val defaultColor = prefs.getString(PREF_COLOR, null)
-        if (source == cachedSource && defaultColor == cachedDefaultColor) return cachedMap
+        if (source == cachedSource && groups == cachedGroups && defaultColor == cachedDefaultColor) return cachedMap
         cachedSource = source
+        cachedGroups = groups
         cachedDefaultColor = defaultColor
-        cachedMap = parse(source, parseColor(defaultColor) ?: parseColor(DEFAULT_COLOR)!!)
+        val map = HashMap(parse(source, parseColor(defaultColor) ?: parseColor(DEFAULT_COLOR)!!))
+        // Group members use their group's color.
+        parseGroups(groups).forEach { group -> group.members.forEach { map[it.lowercase()] = group.color } }
+        cachedMap = map
         return cachedMap
     }
 

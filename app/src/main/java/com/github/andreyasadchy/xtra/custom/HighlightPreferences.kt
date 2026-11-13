@@ -54,10 +54,12 @@ class HighlightUsersPreference @JvmOverloads constructor(
 
     private fun updateSummary() {
         val users = UserHighlights.parseEntries(context.prefs().getString(UserHighlights.PREF_USERS, null))
+        val groups = UserHighlights.parseGroups(context.prefs().getString(UserHighlights.PREF_GROUPS, null))
+        val names = groups.map { "${it.name} (${it.members.size})" } + users.map { it.first }
         summary = when {
-            users.isEmpty() -> "No users yet. Tap to add"
-            users.size <= 4 -> users.joinToString(", ") { it.first }
-            else -> users.take(4).joinToString(", ") { it.first } + " and ${users.size - 4} more"
+            names.isEmpty() -> "No users yet. Tap to add"
+            names.size <= 4 -> names.joinToString(", ")
+            else -> names.take(4).joinToString(", ") + " and ${names.size - 4} more"
         }
     }
 }
@@ -94,13 +96,23 @@ object HighlightDialogs {
         0xFFEB3B, 0xFFC107, 0xFF9800, 0xFF5722, 0x795548, 0x9E9E9E,
     )
 
+    /** Highlighted users: groups (name + color, members use the group color) and ungrouped users. */
     fun showUserList(context: Context, onChanged: () -> Unit) {
         val prefs = context.prefs()
         val entries = UserHighlights.parseEntries(prefs.getString(UserHighlights.PREF_USERS, null)).toMutableList()
+        val groups = UserHighlights.parseGroups(prefs.getString(UserHighlights.PREF_GROUPS, null))
         fun save() {
-            prefs.edit { putString(UserHighlights.PREF_USERS, UserHighlights.serializeEntries(entries)) }
+            prefs.edit {
+                putString(UserHighlights.PREF_USERS, UserHighlights.serializeEntries(entries))
+                putString(UserHighlights.PREF_GROUPS, UserHighlights.serializeGroups(groups))
+            }
             onChanged()
             ChatLive.refreshChat() // the open chat shows the change right away
+        }
+        /** Takes [name] out of wherever it is (ungrouped or a group). */
+        fun detach(name: String) {
+            entries.removeAll { it.first.equals(name, true) }
+            groups.forEach { g -> g.members.removeAll { it.equals(name, true) } }
         }
         val builder = context.getAlertDialogBuilder()
         val ctx = builder.context
@@ -110,49 +122,164 @@ object HighlightDialogs {
             addView(list)
         }
         lateinit var render: () -> Unit
+
+        fun header(text: String) = TextView(ctx).apply {
+            this.text = text
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(dp(ctx, 8), dp(ctx, 12), dp(ctx, 8), dp(ctx, 4))
+        }
+
+        fun row(color: Int, title: String, onClick: () -> Unit, onRemove: (() -> Unit)?) = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = dp(ctx, 52)
+            setPadding(dp(ctx, 8), 0, 0, 0)
+            background = selectableBackground(ctx)
+            isClickable = true
+            setOnClickListener { onClick() }
+            addView(View(ctx).apply { background = swatch(ctx, color, 28) }, LinearLayout.LayoutParams(dp(ctx, 28), dp(ctx, 28)))
+            addView(TextView(ctx).apply {
+                text = title
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+                setPadding(dp(ctx, 16), 0, dp(ctx, 8), 0)
+            }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            if (onRemove != null) addView(TextView(ctx).apply {
+                text = "✕"
+                contentDescription = "Remove $title"
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+                gravity = Gravity.CENTER
+                background = selectableBackground(ctx, borderless = true)
+                setOnClickListener { onRemove() }
+            }, LinearLayout.LayoutParams(dp(ctx, 48), dp(ctx, 48)))
+        }
+
+        fun choose(title: String, options: List<String>, onChosen: (Int) -> Unit) {
+            ctx.getAlertDialogBuilder().setTitle(title)
+                .setItems(options.toTypedArray()) { _, which -> onChosen(which) }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show().also { ChatLive.placeBesideChat(it, dp(ctx, 420)) }
+        }
+
+        /** Move [name] into a group (uses its color) or to ungrouped (keeps [currentColor]). */
+        fun moveUser(name: String, currentColor: Int, after: () -> Unit) {
+            val targets = listOf("Ungrouped (keep color)") + groups.map { it.name }
+            choose("Move $name to", targets) { which ->
+                detach(name)
+                if (which == 0) entries.add(name to currentColor) else groups[which - 1].members.add(name)
+                save(); render(); after()
+            }
+        }
+
+        /** Options for a user. In a group, a new color moves them to ungrouped (the group color is master). */
+        fun userOptions(name: String, group: UserHighlights.Group?, after: () -> Unit) {
+            val currentColor = group?.color ?: entries.firstOrNull { it.first.equals(name, true) }?.second ?: UserHighlights.getDefaultColor(ctx)
+            val options = listOf(if (group != null) "Own color (moves to Ungrouped)" else "Change color", "Move to…", "Remove")
+            choose(name, options) { which ->
+                when (which) {
+                    0 -> showColorPicker(ctx, name, name, currentColor, liveUser = name) { picked ->
+                        detach(name)
+                        entries.add(name to picked)
+                        save(); render(); after()
+                    }
+                    1 -> moveUser(name, currentColor, after)
+                    2 -> { detach(name); save(); render(); after() }
+                }
+            }
+        }
+
+        fun addUser(defaultGroup: UserHighlights.Group?, after: () -> Unit) {
+            showAddUser(ctx) { name ->
+                fun addTo(group: UserHighlights.Group?) {
+                    if (group != null) {
+                        detach(name); group.members.add(name); save(); render(); after()
+                    } else {
+                        showColorPicker(ctx, name, name, UserHighlights.getDefaultColor(ctx), liveUser = name) { picked ->
+                            detach(name); entries.add(name to picked); save(); render(); after()
+                        }
+                    }
+                }
+                when {
+                    defaultGroup != null -> addTo(defaultGroup)
+                    groups.isEmpty() -> addTo(null)
+                    else -> choose("Add $name to", listOf("Ungrouped (pick a color)") + groups.map { it.name }) { which ->
+                        addTo(if (which == 0) null else groups[which - 1])
+                    }
+                }
+            }
+        }
+
+        fun showGroup(group: UserHighlights.Group) {
+            val gBuilder = ctx.getAlertDialogBuilder()
+            val gctx = gBuilder.context
+            val members = LinearLayout(gctx).apply { orientation = LinearLayout.VERTICAL }
+            lateinit var renderGroup: () -> Unit
+            renderGroup = {
+                members.removeAllViews()
+                if (group.members.isEmpty()) members.addView(TextView(gctx).apply {
+                    text = "No users in this group yet."
+                    setPadding(dp(gctx, 8), dp(gctx, 16), dp(gctx, 8), dp(gctx, 16))
+                })
+                group.members.toList().forEach { member ->
+                    members.addView(row(group.color, member, { userOptions(member, group) { renderGroup() } }) {
+                        group.members.remove(member); save(); render(); renderGroup()
+                    })
+                }
+            }
+            renderGroup()
+            val actions = listOf("Change group color", "Rename group", "Delete group")
+            val dialog = gBuilder.setTitle(group.name)
+                .setView(ScrollView(gctx).apply {
+                    setPadding(dp(gctx, 16), dp(gctx, 8), dp(gctx, 16), 0)
+                    addView(members)
+                })
+                .setPositiveButton("Done", null)
+                .setNeutralButton("Add user", null)
+                .setNegativeButton("Group…", null)
+                .show()
+            ChatLive.placeBesideChat(dialog, dp(gctx, 420))
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener { addUser(group) { renderGroup() } }
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener {
+                choose(group.name, actions) { which ->
+                    when (which) {
+                        0 -> showColorPicker(gctx, group.name, group.members.firstOrNull() ?: group.name, group.color, liveUsers = group.members.toList()) { picked ->
+                            group.color = picked; save(); render(); renderGroup()
+                        }
+                        1 -> showTextInput(gctx, "Rename group", group.name, "Group name") { name ->
+                            group.name = name; save(); render(); dialog.setTitle(name)
+                        }
+                        2 -> choose("Delete ${group.name}?", listOf("Keep its users as ungrouped", "Remove its users too")) { keep ->
+                            if (keep == 0) group.members.forEach { m -> entries.add(m to group.color) }
+                            groups.remove(group); save(); render(); dialog.dismiss()
+                        }
+                    }
+                }
+            }
+        }
+
         render = {
             list.removeAllViews()
-            if (entries.isEmpty()) {
+            if (groups.isEmpty() && entries.isEmpty()) {
                 list.addView(TextView(ctx).apply {
                     text = "No highlighted users yet."
                     setPadding(dp(ctx, 8), dp(ctx, 16), dp(ctx, 8), dp(ctx, 16))
                 })
             }
-            entries.forEachIndexed { index, (user, color) ->
-                val rowColor = color ?: UserHighlights.getDefaultColor(ctx)
-                list.addView(LinearLayout(ctx).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    gravity = Gravity.CENTER_VERTICAL
-                    minimumHeight = dp(ctx, 52)
-                    setPadding(dp(ctx, 8), 0, 0, 0)
-                    background = selectableBackground(ctx)
-                    isClickable = true
-                    setOnClickListener {
-                        showColorPicker(ctx, user, user, rowColor, liveUser = user) { picked ->
-                            entries[index] = user to picked
-                            save()
-                            render()
-                        }
-                    }
-                    addView(View(ctx).apply { background = swatch(ctx, rowColor, 28) }, LinearLayout.LayoutParams(dp(ctx, 28), dp(ctx, 28)))
-                    addView(TextView(ctx).apply {
-                        text = user
-                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
-                        setPadding(dp(ctx, 16), 0, dp(ctx, 8), 0)
-                    }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-                    addView(TextView(ctx).apply {
-                        text = "✕"
-                        contentDescription = "Remove $user"
-                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
-                        gravity = Gravity.CENTER
-                        background = selectableBackground(ctx, borderless = true)
-                        setOnClickListener {
-                            entries.removeAt(index)
-                            save()
-                            render()
-                        }
-                    }, LinearLayout.LayoutParams(dp(ctx, 48), dp(ctx, 48)))
-                })
+            if (groups.isNotEmpty()) {
+                list.addView(header("Groups"))
+                groups.forEach { group ->
+                    val count = group.members.size
+                    list.addView(row(group.color, "${group.name} ($count user${if (count == 1) "" else "s"})", { showGroup(group) }, null))
+                }
+            }
+            if (entries.isNotEmpty()) {
+                if (groups.isNotEmpty()) list.addView(header("Ungrouped"))
+                entries.toList().forEach { (user, color) ->
+                    val rowColor = color ?: UserHighlights.getDefaultColor(ctx)
+                    list.addView(row(rowColor, user, { userOptions(user, null) {} }) {
+                        detach(user); save(); render()
+                    })
+                }
             }
         }
         render()
@@ -161,21 +288,45 @@ object HighlightDialogs {
             .setView(content)
             .setPositiveButton("Done", null)
             .setNeutralButton("Add user", null)
+            .setNegativeButton("New group", null)
             .show()
         ChatLive.placeBesideChat(dialog, dp(ctx, 420))
-        // Keep the list open after adding a user.
-        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
-            showAddUser(ctx) { name ->
-                if (entries.none { it.first.equals(name, true) }) {
-                    val initial = UserHighlights.getDefaultColor(ctx)
-                    showColorPicker(ctx, name, name, initial, liveUser = name) { picked ->
-                        entries.add(name to picked)
-                        save()
-                        render()
-                    }
+        // Keep the list open after these.
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener { addUser(null) {} }
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener {
+            showTextInput(ctx, "New group", "", "Group name") { name ->
+                showColorPicker(ctx, name, name, UserHighlights.getDefaultColor(ctx)) { picked ->
+                    val group = UserHighlights.Group(name, picked, mutableListOf())
+                    groups.add(group); save(); render()
+                    showGroup(group)
                 }
             }
         }
+    }
+
+    private fun showTextInput(context: Context, title: String, initial: String, hintText: String, onDone: (String) -> Unit) {
+        val builder = context.getAlertDialogBuilder()
+        val ctx = builder.context
+        val input = EditText(ctx).apply {
+            hint = hintText
+            isSingleLine = true
+            setText(initial)
+            setSelection(initial.length)
+        }
+        val frame = LinearLayout(ctx).apply {
+            setPadding(dp(ctx, 24), dp(ctx, 8), dp(ctx, 24), 0)
+            addView(input, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        }
+        builder.setTitle(title)
+            .setView(frame)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val text = input.text.toString().trim()
+                if (text.isNotEmpty()) onDone(text)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+            .also { ChatLive.placeBesideChat(it, dp(ctx, 420)) }
+        input.requestFocus()
     }
 
     private fun showAddUser(context: Context, onAdded: (String) -> Unit) {
@@ -202,7 +353,8 @@ object HighlightDialogs {
         input.requestFocus()
     }
 
-    fun showColorPicker(context: Context, title: String, previewName: String, initial: Int, liveUser: String? = null, onPicked: (Int) -> Unit) {
+    fun showColorPicker(context: Context, title: String, previewName: String, initial: Int, liveUser: String? = null, liveUsers: List<String> = emptyList(), onPicked: (Int) -> Unit) {
+        val live = (listOfNotNull(liveUser) + liveUsers).map { it.lowercase() }
         val builder = context.getAlertDialogBuilder()
         val ctx = builder.context
         val hsv = FloatArray(3).also { Color.colorToHSV(initial, it) }
@@ -298,7 +450,7 @@ object HighlightDialogs {
         fun refresh(source: Any?) {
             updating = true
             val color = current()
-            liveUser?.let { ChatLive.previewUser(ctx, it.lowercase(), color) } // the real chat, live
+            live.forEach { ChatLive.previewUser(ctx, it, color) } // the real chat, live
             preview.setBackgroundColor(color)
             val rgb = color and 0xFFFFFF
             swatches.forEach { (view, c) -> view.background = swatch(ctx, c or (0xFF shl 24), 32, selected = c == rgb) }
@@ -466,7 +618,7 @@ object HighlightDialogs {
             .setPositiveButton(android.R.string.ok) { _, _ -> onPicked(current()) }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
-        dialog.setOnDismissListener { if (liveUser != null) ChatLive.refreshChat() } // OK saved it; Cancel puts it back
+        dialog.setOnDismissListener { if (live.isNotEmpty()) ChatLive.refreshChat() } // OK saved it; Cancel puts it back
         if (besideChat != null) {
             ChatLive.placeBesideChat(dialog, if (landscape) dp(ctx, 1000) else dp(ctx, 460))
         } else if (landscape) {
