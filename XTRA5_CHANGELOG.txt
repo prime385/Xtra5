@@ -1,6 +1,16 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.37.0 (2026-11-14)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Changed
+- With TV mode shortcuts on, the highlight panels (highlighted users, groups, color picker and
+  their small pop-ups) can be much taller: 20dp margin above and below instead of 80dp. Sizes
+  are unchanged; nothing changes with TV mode shortcuts off.
+- With TV mode shortcuts on, the color picker fits on screen without scrolling: on a wide
+  screen the preview and wheel sit beside the controls, and the wheel only shrinks if it has to.
+========================================
 Xtra5 1.36.0 (2026-11-14)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

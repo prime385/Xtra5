@@ -39,6 +39,20 @@ import com.google.android.material.slider.Slider
  * Xtra5 custom: settings UI for user highlights (user list editor and color picker).
  * Referenced by class name from res/xml/chat_preferences.xml, so no upstream code hooks are needed.
  */
+/** With TV mode shortcuts on, dialog margins above and below (Material's default is 80dp). */
+private const val TV_INSET_DP = 20
+
+private fun tvPanels(context: Context) = context.prefs().getBoolean(TvShortcuts.PREF_ENABLED, false)
+
+/** Dialog builder for the highlight panels: with TV mode shortcuts on they may be taller. */
+private fun panelBuilder(context: Context): AlertDialog.Builder = context.getAlertDialogBuilder().also { builder ->
+    if (tvPanels(context) && builder is com.google.android.material.dialog.MaterialAlertDialogBuilder) {
+        val inset = (TV_INSET_DP * context.resources.displayMetrics.density).toInt()
+        builder.setBackgroundInsetTop(inset)
+        builder.setBackgroundInsetBottom(inset)
+    }
+}
+
 @Keep
 class HighlightUsersPreference @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -115,7 +129,7 @@ object HighlightDialogs {
             entries.removeAll { it.first.equals(name, true) }
             groups.forEach { g -> g.members.removeAll { it.equals(name, true) } }
         }
-        val builder = context.getAlertDialogBuilder()
+        val builder = panelBuilder(context)
         val ctx = builder.context
         // Beside the chat in landscape with room to spare: two columns (Groups | Ungrouped).
         val wide = (ChatLive.usableWidthBesideChat(ctx) ?: 0) >= dp(ctx, 600)
@@ -204,7 +218,7 @@ object HighlightDialogs {
         }
 
         fun choose(title: String, options: List<String>, onChosen: (Int) -> Unit) {
-            ctx.getAlertDialogBuilder().setTitle(title)
+            panelBuilder(ctx).setTitle(title)
                 .setItems(options.toTypedArray()) { _, which -> onChosen(which) }
                 .setNegativeButton(android.R.string.cancel, null)
                 .show().also { ChatLive.placeBesideChat(it, dp(ctx, 420)) }
@@ -229,7 +243,7 @@ object HighlightDialogs {
                     if (index >= 0) entries[index] = entries[index].first to picked else entries.add(name to picked)
                     save(); render(); after()
                 } else {
-                    ctx.getAlertDialogBuilder()
+                    panelBuilder(ctx)
                         .setMessage("$name will be moved to Ungrouped")
                         .setPositiveButton(android.R.string.ok) { _, _ ->
                             detach(name)
@@ -297,7 +311,7 @@ object HighlightDialogs {
         }
 
         fun showGroup(group: UserHighlights.Group) {
-            val gBuilder = ctx.getAlertDialogBuilder()
+            val gBuilder = panelBuilder(ctx)
             val gctx = gBuilder.context
             val members = LinearLayout(gctx).apply { orientation = LinearLayout.VERTICAL }
             lateinit var renderGroup: () -> Unit
@@ -407,7 +421,7 @@ object HighlightDialogs {
     }
 
     private fun showTextInput(context: Context, title: String, initial: String, hintText: String, onDone: (String) -> Unit) {
-        val builder = context.getAlertDialogBuilder()
+        val builder = panelBuilder(context)
         val ctx = builder.context
         val input = EditText(ctx).apply {
             hint = hintText
@@ -432,7 +446,7 @@ object HighlightDialogs {
     }
 
     private fun showAddUser(context: Context, onAdded: (String) -> Unit) {
-        val builder = context.getAlertDialogBuilder()
+        val builder = panelBuilder(context)
         val ctx = builder.context
         val input = EditText(ctx).apply {
             hint = "Username"
@@ -457,7 +471,7 @@ object HighlightDialogs {
 
     fun showColorPicker(context: Context, title: String, previewName: String, initial: Int, liveUser: String? = null, liveUsers: List<String> = emptyList(), onPicked: (Int) -> Unit) {
         val live = (listOfNotNull(liveUser) + liveUsers).map { it.lowercase() }
-        val builder = context.getAlertDialogBuilder()
+        val builder = panelBuilder(context)
         val ctx = builder.context
         val hsv = FloatArray(3).also { Color.colorToHSV(initial, it) }
         var alpha = Color.alpha(initial)
@@ -468,6 +482,11 @@ object HighlightDialogs {
         // that space is wide enough, otherwise the stacked layout.
         val besideChat = ChatLive.usableWidthBesideChat(ctx)
         val landscape = metrics.widthPixels > metrics.heightPixels && (besideChat == null || besideChat >= dp(ctx, 720))
+        // TV mode shortcuts: the panel may be nearly screen-tall, and everything is fitted inside
+        // it (smaller wheel, wheel beside the controls on a wide screen) so nothing needs scrolling.
+        val tv = tvPanels(ctx)
+        val fitHeight = metrics.heightPixels - dp(ctx, 2 * TV_INSET_DP + 140) // minus title and buttons
+        val sideBySide = tv && !landscape && metrics.widthPixels > metrics.heightPixels
 
         // Chat preview: a normal message, the highlighted one, another normal message, styled like
         // the real chat (background, font, username size and bold setting).
@@ -573,7 +592,7 @@ object HighlightDialogs {
             refresh(null)
         }
         removeSaved = { color ->
-            context.getAlertDialogBuilder()
+            panelBuilder(context)
                 .setMessage("Remove this saved color?")
                 .setPositiveButton(android.R.string.ok) { _, _ ->
                     setSavedColors(ctx, getSavedColors(ctx).filter { it != color })
@@ -660,7 +679,10 @@ object HighlightDialogs {
         }
         // Room left for the wheel after the dialog title, buttons and the other controls.
         wheel.maxSizePx = if (landscape) {
-            (metrics.heightPixels - dp(ctx, 190)).coerceIn(dp(ctx, 140), dp(ctx, 260))
+            (metrics.heightPixels - dp(ctx, 190)).coerceIn(dp(ctx, 140), dp(ctx, 260)).let { if (tv) minOf(it, fitHeight).coerceAtLeast(dp(ctx, 100)) else it }
+        } else if (sideBySide) {
+            previewBox.measure(View.MeasureSpec.makeMeasureSpec(dp(ctx, 240), View.MeasureSpec.AT_MOST), View.MeasureSpec.UNSPECIFIED)
+            (fitHeight - previewBox.measuredHeight - dp(ctx, 16)).coerceIn(dp(ctx, 100), dp(ctx, 240))
         } else {
             (metrics.heightPixels - dp(ctx, if (besideChat != null) 470 else 590)).coerceIn(dp(ctx, 120), dp(ctx, 240))
         }
@@ -688,7 +710,7 @@ object HighlightDialogs {
         val content = if (landscape) {
             // Wheel | preview, hex and sliders | saved and preset colors (5 across). Only the
             // colors column scrolls, if it is ever taller than the screen.
-            val colors = MaxHeightScrollView(ctx, (metrics.heightPixels - dp(ctx, 170)).coerceAtLeast(dp(ctx, 200))).apply {
+            val colors = MaxHeightScrollView(ctx, (if (tv) fitHeight else metrics.heightPixels - dp(ctx, 170)).coerceAtLeast(dp(ctx, 200))).apply {
                 addView(LinearLayout(ctx).apply {
                     orientation = LinearLayout.VERTICAL
                     addView(savedLabel)
@@ -704,6 +726,20 @@ object HighlightDialogs {
                 addView(wheel, LinearLayout.LayoutParams(wheel.maxSizePx, wheel.maxSizePx).apply { marginEnd = dp(ctx, 20) })
                 addView(controls, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
                 addView(colors, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { marginStart = dp(ctx, 20) })
+            }
+        } else if (sideBySide) {
+            // Preview and wheel | hex, sliders, saved and preset colors.
+            LinearLayout(ctx).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.TOP
+                setPadding(dp(ctx, 20), dp(ctx, 8), dp(ctx, 20), 0)
+                addView(LinearLayout(ctx).apply {
+                    orientation = LinearLayout.VERTICAL
+                    addView(previewBox, LinearLayout.LayoutParams(wheel.maxSizePx, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = dp(ctx, 8) })
+                    addView(wheel, LinearLayout.LayoutParams(wheel.maxSizePx, wheel.maxSizePx))
+                }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { marginEnd = dp(ctx, 20) })
+                addView(MaxHeightScrollView(ctx, fitHeight.coerceAtLeast(dp(ctx, 200))).apply { addView(controls) },
+                    LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             }
         } else {
             LinearLayout(ctx).apply {
@@ -722,8 +758,8 @@ object HighlightDialogs {
             .show()
         dialog.setOnDismissListener { if (live.isNotEmpty()) ChatLive.refreshChat() } // OK saved it; Cancel puts it back
         if (besideChat != null) {
-            ChatLive.placeBesideChat(dialog, if (landscape) dp(ctx, 1000) else dp(ctx, 460))
-        } else if (landscape) {
+            ChatLive.placeBesideChat(dialog, if (landscape) dp(ctx, 1000) else if (sideBySide) dp(ctx, 720) else dp(ctx, 460))
+        } else if (landscape || sideBySide) {
             dialog.window?.setLayout(
                 (metrics.widthPixels * 0.9f).toInt().coerceAtMost(dp(ctx, 1000)),
                 ViewGroup.LayoutParams.WRAP_CONTENT
