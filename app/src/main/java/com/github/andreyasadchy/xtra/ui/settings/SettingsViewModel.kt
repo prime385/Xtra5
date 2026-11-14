@@ -453,6 +453,7 @@ class SettingsViewModel(
 
     fun restoreSettings(list: List<String>, networkLibrary: String?, gqlHeaders: Map<String, String>, helixHeaders: Map<String, String>) {
         viewModelScope.launch(Dispatchers.IO) {
+            val list = com.github.andreyasadchy.xtra.custom.RestoreFix.settingsFirst(list) // Xtra5 custom
             list.take(2).forEach { url ->
                 if (url.endsWith(".xml")) {
                     FileOutputStream("${applicationContext.applicationInfo.dataDir}/shared_prefs/${applicationContext.packageName}_preferences.xml").use { outputStream ->
@@ -483,6 +484,7 @@ class SettingsViewModel(
                     exitProcess(0)
                 }
             }
+            com.github.andreyasadchy.xtra.custom.RestoreFix.restartAfterSettingsOnly(applicationContext, list) // Xtra5 custom
         }
     }
 

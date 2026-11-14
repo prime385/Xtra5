@@ -1,6 +1,17 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.39.1 (2026-11-14)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Settings > Restore settings is now reliable (official Xtra issue):
+  - With both backup files picked, the settings file is always restored before the database.
+    Restoring the database restarts the app, so the settings could be skipped if they came
+    second.
+  - Restoring only the settings file now restarts the app too, so the running app can't save
+    its old settings back over the restored ones.
+========================================
 Xtra5 1.39.0 (2026-11-14)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
