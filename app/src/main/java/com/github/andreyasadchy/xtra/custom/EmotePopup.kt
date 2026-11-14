@@ -28,12 +28,22 @@ object EmotePopup {
     fun register(activity: MainActivity) {
         activity.supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
             override fun onFragmentStarted(fm: FragmentManager, f: Fragment) {
+                if (f is ImageClickedDialog) enlargeImage(f)
                 val chat = f.parentFragment as? ChatFragment ?: return
                 if (f is MessageClickedDialog || f is ReplyClickedDialog || f is ImageClickedDialog) {
                     f.view?.post { attach(f as BottomSheetDialogFragment, chat) }
                 }
             }
         }, true)
+    }
+
+    /** The emote/badge in its popup at twice the original 70dp (the largest it stays sharp). */
+    private const val IMAGE_HEIGHT_DP = 140
+
+    private fun enlargeImage(dialog: ImageClickedDialog) {
+        val image = dialog.view?.findViewById<View>(R.id.image) ?: return
+        val height = (IMAGE_HEIGHT_DP * image.resources.displayMetrics.density).toInt()
+        if (image.layoutParams.height != height) image.layoutParams = image.layoutParams.apply { this.height = height }
     }
 
     /**

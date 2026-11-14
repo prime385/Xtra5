@@ -1,6 +1,13 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.38.0 (2026-11-14)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Changed
+- The emote details popup (tap an emote or badge) shows the image twice as big: 140dp tall
+  instead of 70dp. Everything else in the popup is unchanged.
+========================================
 Xtra5 1.37.1 (2026-11-14)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
