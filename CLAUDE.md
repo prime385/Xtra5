@@ -30,8 +30,9 @@ Personal fork of official Xtra (crackededed/Xtra) with custom features. Work hap
   Behind the scenes sections). Send the full history as `xtra5-Custom-Changelog.txt` (always this exact name, so the owner
   can save over the same local file) alongside every APK sent to the owner.
 - Keep `XTRA5_SUMMARY.txt` up to date when a version adds or substantially changes a major
-  feature: grouped bullet points, a sentence or two each (sub-points for complex features), no
-  minor fixes. Send it as `xtra5-Custom-Changelog_summary.txt` alongside every APK sent to the owner.
+  feature. It is a feature list for a prospective user: grouped bullet points, a sentence or two
+  each (sub-points for complex features), benefits rather than internals (no build/merge/email
+  details), no minor fixes. Send it as `xtra5-Custom-Changelog_summary.txt` alongside every APK sent to the owner.
 - `.github/workflows/xtra5.yml` merges official Xtra daily, bumps FIX, builds and publishes a
   release with the APK and `xtra5-Custom-Changelog.txt` (full history; the release description is
   that version's entry; it writes the entry itself for automatic builds);
