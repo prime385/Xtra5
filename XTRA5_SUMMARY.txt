@@ -1,4 +1,4 @@
-Xtra5 - feature list (version 1.34.1)
+Xtra5 - feature list (version 1.35.0)
 Everything official Xtra does, plus the features below.
 
 ========================================
@@ -45,7 +45,7 @@ Browsing
 - Long-press a stream to open it audio-only.
 - Clean stream cards: streamer, category and title, with text sizes you can adjust.
 - Layouts that stay readable on big screens and TVs with lots of columns.
-- Refresh everything with one button, and lists refresh themselves when you come back to
-  the app.
+- Refresh everything with one button (or just tap the Live tab), and lists refresh themselves
+  when you come back to the app.
 - Optional fixed top bar that stays in place while you scroll.
 - Back always takes you home to your Live list before leaving the app.

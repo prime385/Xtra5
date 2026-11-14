@@ -44,6 +44,7 @@
     <item name="xtra5_player_highlights" type="id" />
     <item name="xtra5_chat_popup" type="id" />
     <item name="xtra5_favorite_star" type="id" />
+    <item name="xtra5_live_tab" type="id" />
     <string name="xtra5_stream_cards" translatable="false">Stream cards (Xtra5)</string>
     <string name="xtra5_card_name_size" translatable="false">Streamer name size (sp)</string>
     <string name="xtra5_card_category_size" translatable="false">Category size (sp)</string>

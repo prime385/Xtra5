@@ -1,6 +1,14 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.35.0 (2026-11-14)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Tapping the Live tab on Following (or selecting it with the remote) refreshes the Live list
+  only and scrolls it to the top - both when switching to it and when already on it. Swiping to
+  the tab doesn't trigger it.
+========================================
 Xtra5 1.34.2 (2026-11-14)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
