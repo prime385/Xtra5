@@ -48,6 +48,7 @@ object UpstreamUpdates {
             PlayerExtras.register(it) // Xtra5: Settings button in the player controls
             BatteryIndicator.register(it) // Xtra5: battery percentage in fullscreen video
             EmotePopup.register(it) // Xtra5: chat popups beside the chat
+            BackToLive.register(it) // Xtra5: Back goes to Following > Live before exiting
         }
         val prefs = activity.prefs()
         // Xtra5: don't pause when headphones / Bluetooth audio disconnect (see AudioGuard).

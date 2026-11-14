@@ -1,6 +1,16 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.31.0 (2026-11-14)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Following > Live is the only place Back exits the app. With no video open, a Back that would
+  otherwise leave the app (from Popular, Games, Saved or another Following tab) switches to
+  Following > Live and refreshes it. Back still steps back through pages (channel pages, search
+  and so on) first, and with a video open Back works as before. Works with the remote, the back
+  button and the back gesture.
+========================================
 Xtra5 1.30.0 (2026-11-13)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
