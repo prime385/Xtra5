@@ -1,0 +1,63 @@
+Xtra5 feature summary (up to 1.34.1)
+Custom build of official Xtra (Twitch) with these additions. Major features only; see
+xtra5-Custom-Changelog.txt for every version and fix.
+
+========================================
+App and updates
+- Xtra5 installs alongside official Xtra (its own name and package ID) and uses MAJOR.FEATURE.FIX
+  version numbers.
+- Automatic updates: official Xtra changes are merged and built every day, and the in-app updater
+  installs new Xtra5 builds with one tap.
+  - If an official update clashes with Xtra5's changes, nothing is published and GitHub emails you.
+- Official Xtra changelog in Settings, with changes not yet in your build marked NEW.
+- Refresh button in the top bar reloads every section of the current screen and scrolls back to
+  the top.
+- Fixed top bar (optional): the title bar, tabs and sort bar stay in place while lists scroll.
+- Automatic refreshes: after minimizing a video, and when coming back to the app after it slept
+  (a live stream that was open also reloads).
+- Following > Live is home: Back from any other main screen goes there and refreshes, and Back
+  only exits the app from there.
+
+========================================
+Chat
+- User highlights: messages from chosen users get a colored background.
+  - Groups: create named groups with a color; every member uses the group color, and changing it
+    recolors all of them. A user can also be ungrouped with their own color.
+  - Tap a color circle to change a color; recoloring a grouped user moves them to Ungrouped.
+    Users can be renamed, moved between groups or removed.
+  - Changes show live in the real chat while you pick, and a palette button in the player opens
+    the list without leaving the video.
+- Color picker: color wheel, hex field, brightness and opacity sliders, presets and your own
+  saved colors, with a preview of real-looking chat messages.
+- Special message colors: choose the background for subs and notices, first-time chatters,
+  channel point rewards, mentions of you and bot messages.
+  - Bot accounts: a built-in list of common bots that you can edit.
+- Chat appearance: message spacing, lines between messages (with opacity), chat font and username
+  size.
+- Synced animated emotes: every copy of the same emote animates in step.
+- Tapping an emote opens its details directly; tapping a message opens the conversation.
+- Chat popups (conversation, replies, emotes) open beside the chat instead of over the video.
+- Reply lines show a small reply icon instead of "Replying to", leaving room for more text.
+
+========================================
+Player and TV remote
+- TV mode shortcuts (optional) for remotes, keyboards and controllers:
+  - Left / Right skip by a fixed step (5-60s) with a rewind / fast-forward animation.
+  - Up holds the seek bar: Left / Right (tap or hold) move it by a percentage of the video, OK
+    jumps there, Back cancels.
+  - Down opens chapters; hold OK reloads a live stream (or refreshes the screen with no video);
+    Back closes a minimized video; long-press Back closes any video.
+- Settings button in the player controls, and the video resumes when you come back.
+- Battery percentage in fullscreen (optional), fading when the screen is untouched.
+- Videos keep playing when earbuds disconnect or go back in their case (live streams); unpausing
+  a live stream always jumps to live.
+- Maximizing a paused minimized video plays it.
+
+========================================
+Lists and streams
+- Favourite streamers: long-press a profile picture (on Live or Channels) for a gold ring and
+  star; favourites are listed first on Following > Live, then everyone else A-Z.
+- Long-press a live stream card to open it audio-only, just that once.
+- Live stream cards: streamer name, category and title with adjustable text sizes; no tags.
+- Video and channel cards stay readable with many columns (e.g. on a TV).
+- Chapters menu has its own column count.
