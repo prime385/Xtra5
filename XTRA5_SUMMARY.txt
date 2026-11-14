@@ -52,3 +52,4 @@ Browsing
   when you come back to the app.
 - Optional fixed top bar that stays in place while you scroll.
 - Back always takes you home to your Live list before leaving the app.
+- Press Following again from its main page to jump straight to a freshly refreshed Live list.

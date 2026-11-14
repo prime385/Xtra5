@@ -1,6 +1,15 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.39.0 (2026-11-14)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Pressing Following in the bottom bar while already on Following's main page now switches to
+  the Live tab, refreshes it and scrolls to the top (on Live it refreshes and scrolls to the
+  top; it used to only scroll). The first press from deeper in, like a channel page, still
+  goes back to Following's main page as before.
+========================================
 Xtra5 1.38.0 (2026-11-14)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

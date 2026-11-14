@@ -77,6 +77,23 @@ object BackToLive {
         return true
     }
 
+    /**
+     * Following pressed again while already on Following's main page: go to the Live tab (if on
+     * another tab), refresh it and scroll to the top. False if this isn't the Following page.
+     */
+    fun onFollowingReselected(activity: MainActivity): Boolean {
+        val pager = currentScreen(activity) as? FollowPagerFragment ?: return false
+        val tabs = pager.view?.findViewById<TabLayout>(R.id.tabLayout) ?: return false
+        val live = liveTabIndex(activity, tabs) ?: return false
+        if (tabs.selectedTabPosition != live) {
+            tabs.getTabAt(live)?.select()
+            handler.postDelayed({ refreshLive(pager, live) }, 250L) // once the Live page is shown
+        } else {
+            refreshLive(pager, live)
+        }
+        return true
+    }
+
     /** Taps (and remote OK) on the Live tab only - swiping to it doesn't count. */
     private fun watchLiveTab(activity: MainActivity, pager: FollowPagerFragment, tabs: TabLayout) {
         val index = liveTabIndex(activity, tabs) ?: return

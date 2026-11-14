@@ -1176,6 +1176,7 @@ class MainActivity : AppCompatActivity() {
             }
             setOnItemReselectedListener {
                 if (!navController.popBackStack(it.itemId, false)) {
+                    if (it.itemId == R.id.followPagerFragment && com.github.andreyasadchy.xtra.custom.BackToLive.onFollowingReselected(this@MainActivity)) return@setOnItemReselectedListener // Xtra5 custom: second press -> Live + refresh
                     val currentFragment = supportFragmentManager.findFragmentById(R.id.navHostFragment)?.childFragmentManager?.fragments?.getOrNull(0)
                     if (currentFragment is Scrollable) {
                         currentFragment.scrollToTop()
