@@ -101,9 +101,20 @@ class HighlightColorPreference @JvmOverloads constructor(
         icon = HighlightDialogs.swatch(context, color, 28)
         summary = "Used for newly added users"
     }
+
+    // Xtra's settings theme tints every icon grey; the swatch must show its real color.
+    override fun onBindViewHolder(holder: androidx.preference.PreferenceViewHolder) {
+        super.onBindViewHolder(holder)
+        HighlightDialogs.showSwatchColors(holder)
+    }
 }
 
 object HighlightDialogs {
+
+    /** Removes the settings theme's grey icon tint from a preference's color swatch. */
+    fun showSwatchColors(holder: androidx.preference.PreferenceViewHolder) {
+        (holder.findViewById(android.R.id.icon) as? android.widget.ImageView)?.imageTintList = null
+    }
 
     private val palette = intArrayOf(
         0xF44336, 0xE91E63, 0x9C27B0, 0x673AB7, 0x3F51B5, 0x2196F3,

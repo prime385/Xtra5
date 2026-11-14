@@ -130,6 +130,12 @@ class SpecialColorPreference @JvmOverloads constructor(context: Context, attrs: 
     private fun update() {
         icon = HighlightDialogs.swatch(context, SpecialMessages.color(context, key), 28)
     }
+
+    // Xtra's settings theme tints every icon grey; the swatch must show its real color.
+    override fun onBindViewHolder(holder: androidx.preference.PreferenceViewHolder) {
+        super.onBindViewHolder(holder)
+        HighlightDialogs.showSwatchColors(holder)
+    }
 }
 
 /** The bot accounts list in Settings: one name per line. */

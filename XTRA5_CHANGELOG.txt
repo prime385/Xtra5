@@ -1,6 +1,14 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.37.1 (2026-11-14)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- The color circles in Settings (default highlight color, subs and notices, first-time
+  chatters, rewards, mentions, bots) showed as plain grey: the settings theme tinted them like
+  icons. They now show the actual colors.
+========================================
 Xtra5 1.37.0 (2026-11-14)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
