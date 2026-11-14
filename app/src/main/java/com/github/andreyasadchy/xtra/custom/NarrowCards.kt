@@ -8,6 +8,7 @@ import androidx.constraintlayout.widget.ConstraintSet
 import com.github.andreyasadchy.xtra.R
 import com.github.andreyasadchy.xtra.databinding.FragmentFollowedChannelsListItemBinding
 import com.github.andreyasadchy.xtra.databinding.FragmentVideosListItemBinding
+import com.github.andreyasadchy.xtra.model.ui.User
 
 /**
  * Xtra5 custom: readable video and channel cards when they are narrow (many columns, e.g. on a TV).
@@ -56,7 +57,9 @@ object NarrowCards {
         }
     }
 
-    fun channelCard(binding: FragmentFollowedChannelsListItemBinding) {
+    fun channelCard(binding: FragmentFollowedChannelsListItemBinding, item: User? = null) {
+        // Favourite ring / star and long-press, once the adapter has set up the card.
+        item?.let { user -> binding.root.post { Favorites.bindChannel(binding, user) } }
         val layout = binding.layout1.parent as? ConstraintLayout ?: return
         setup(binding.root, layout, onChange = { narrow ->
             binding.layout2.gravity = if (narrow) Gravity.START else Gravity.BOTTOM or Gravity.END

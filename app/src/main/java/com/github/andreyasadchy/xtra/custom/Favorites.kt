@@ -10,7 +10,9 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import com.github.andreyasadchy.xtra.R
+import com.github.andreyasadchy.xtra.databinding.FragmentFollowedChannelsListItemBinding
 import com.github.andreyasadchy.xtra.databinding.FragmentStreamsListItemBinding
+import com.github.andreyasadchy.xtra.model.ui.User
 import com.github.andreyasadchy.xtra.model.ui.Stream
 import com.github.andreyasadchy.xtra.util.prefs
 
@@ -20,6 +22,8 @@ import com.github.andreyasadchy.xtra.util.prefs
  *  - Favourites get a gold ring around the profile picture and a gold star on top of it, centred at
  *    the bottom and hanging slightly below.
  *  - Following > Live lists favourites first (A-Z), then everyone else (A-Z).
+ *  - Following > Channels: same long-press and look (the order there doesn't change), so offline
+ *    channels can be favourited for when they go live.
  *
  * Kept in its own package so upstream Xtra updates can be merged without conflicts.
  * Upstream hooks: the sort line in FollowedStreamsDataSource; stream cards via StreamCards.
@@ -57,9 +61,20 @@ object Favorites {
         list.sortWith(compareBy<Stream>({ !isFavorite(it.channelId) }, { (it.channelName ?: it.channelLogin ?: "").lowercase() }))
     }
 
-    /** Called for every live stream card (from StreamCards). */
+    /** Called for every live stream card (from StreamCards). Toggling re-sorts the list. */
     fun bind(binding: FragmentStreamsListItemBinding, stream: Stream, fragment: Fragment) {
-        val avatar = binding.userImage
+        decorate(binding.userImage, stream.channelId, stream.channelName ?: stream.channelLogin) {
+            fragment.activity?.let { RefreshButton.refreshCurrentScreen(it, showMessage = false) } // re-sort
+        }
+    }
+
+    /** Following > Channels cards: same toggle and look, but the order there doesn't change. */
+    fun bindChannel(binding: FragmentFollowedChannelsListItemBinding, user: User) {
+        decorate(binding.userImage, user.id, user.name ?: user.login) {}
+    }
+
+    /** Gold ring + star on [avatar] for favourites; long-press toggles. */
+    private fun decorate(avatar: ImageView, channelId: String?, name: String?, onToggled: () -> Unit) {
         val layout = avatar.parent as? ConstraintLayout ?: return
         val star = layout.findViewById(R.id.xtra5_favorite_star) ?: ImageView(layout.context).also { star ->
             star.id = R.id.xtra5_favorite_star
@@ -82,14 +97,17 @@ object Favorites {
                 setStroke(dp(layout, 3), GOLD)
             } else null
         }
-        show(isFavorite(stream.channelId))
-        val channelId = stream.channelId ?: return
+        show(isFavorite(channelId))
+        if (channelId == null) {
+            avatar.setOnLongClickListener(null)
+            return
+        }
         avatar.setOnLongClickListener {
             val favorite = toggle(channelId)
             show(favorite)
-            val name = stream.channelName ?: stream.channelLogin ?: "Streamer"
-            Toast.makeText(layout.context, if (favorite) "$name added to favourites" else "$name removed from favourites", Toast.LENGTH_SHORT).show()
-            fragment.activity?.let { RefreshButton.refreshCurrentScreen(it, showMessage = false) } // re-sort
+            val label = name ?: "Streamer"
+            Toast.makeText(layout.context, if (favorite) "$label added to favourites" else "$label removed from favourites", Toast.LENGTH_SHORT).show()
+            onToggled()
             true
         }
     }

@@ -1,6 +1,14 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.33.0 (2026-11-14)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Favourites from Following > Channels: long-press a channel's profile picture to favourite or
+  unfavourite it, with the same gold ring and star. The order of that page doesn't change; the
+  channel is listed first in Following > Live the next time it goes live.
+========================================
 Xtra5 1.32.0 (2026-11-14)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
