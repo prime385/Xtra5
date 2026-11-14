@@ -86,7 +86,14 @@ object Favorites {
     /** Following > Channels cards: same toggle and look, but the order there doesn't change. */
     fun bindChannel(binding: FragmentFollowedChannelsListItemBinding, user: User) {
         remember(binding.root)
-        decorate(binding.userImage, user.id, user.name ?: user.login) {}
+        decorate(binding.userImage, user.id, user.name ?: user.login) { reloadLiveLists() }
+    }
+
+    /** Re-sorts the live stream lists in the background (the Channels page itself is untouched). */
+    private fun reloadLiveLists() {
+        lists.mapNotNull { it.get()?.adapter }
+            .filterIsInstance<com.github.andreyasadchy.xtra.ui.common.StreamsAdapter>()
+            .forEach { it.refresh() }
     }
 
     /** Gold ring + star on [avatar] for favourites; long-press toggles. */

@@ -1,6 +1,13 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.34.2 (2026-11-14)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Favouriting from Following > Channels now also re-sorts Following > Live straight away (it
+  only showed the ring and star until the next refresh). The Channels page itself is unchanged.
+========================================
 Xtra5 1.34.1 (2026-11-14)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
