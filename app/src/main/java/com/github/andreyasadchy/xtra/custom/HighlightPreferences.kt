@@ -117,10 +117,46 @@ object HighlightDialogs {
         }
         val builder = context.getAlertDialogBuilder()
         val ctx = builder.context
-        val list = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
+        // Beside the chat in landscape with room to spare: two columns (Groups | Ungrouped).
+        val wide = (ChatLive.usableWidthBesideChat(ctx) ?: 0) >= dp(ctx, 600)
+        val panelWidth = if (wide) dp(ctx, 900) else dp(ctx, 420)
+        fun column() = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
+        val list = column()
+        val groupColumn = column()
+        val userColumn = column()
         val content = ScrollView(ctx).apply {
             setPadding(dp(ctx, 16), dp(ctx, 8), dp(ctx, 16), 0)
+            if (wide) {
+                list.addView(LinearLayout(ctx).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    addView(groupColumn, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = dp(ctx, 8) })
+                    addView(userColumn, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = dp(ctx, 8) })
+                })
+            }
             addView(list)
+        }
+        var defaultGroup = UserHighlights.defaultGroupName(ctx)
+        fun isDefault(group: UserHighlights.Group) = group.name == defaultGroup
+        fun setDefault(name: String?) {
+            defaultGroup = name
+            prefs.edit { if (name == null) remove(UserHighlights.PREF_DEFAULT_GROUP) else putString(UserHighlights.PREF_DEFAULT_GROUP, name) }
+        }
+        fun groupTitle(group: UserHighlights.Group) = group.name + if (isDefault(group)) " (default)" else ""
+        /** Fills [target] with [rows], in two columns when there is room. */
+        fun fillColumns(target: LinearLayout, rows: List<View>) {
+            if (!wide || rows.size < 2) {
+                rows.forEach { target.addView(it) }
+                return
+            }
+            val left = column()
+            val right = column()
+            val half = (rows.size + 1) / 2
+            rows.forEachIndexed { i, row -> (if (i < half) left else right).addView(row) }
+            target.addView(LinearLayout(ctx).apply {
+                orientation = LinearLayout.HORIZONTAL
+                addView(left, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = dp(ctx, 8) })
+                addView(right, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = dp(ctx, 8) })
+            })
         }
         lateinit var render: () -> Unit
 
@@ -271,15 +307,14 @@ object HighlightDialogs {
                     text = "No users in this group yet."
                     setPadding(dp(gctx, 8), dp(gctx, 16), dp(gctx, 8), dp(gctx, 16))
                 })
-                group.members.toList().forEach { member ->
-                    members.addView(row(group.color, member, { userOptions(member, group) { renderGroup() } }, {
+                fillColumns(members, group.members.toList().map { member ->
+                    row(group.color, member, { userOptions(member, group) { renderGroup() } }, {
                         group.members.remove(member); save(); render(); renderGroup()
-                    }, { userColor(member, group) { renderGroup() } }))
-                }
+                    }, { userColor(member, group) { renderGroup() } })
+                })
             }
             renderGroup()
-            val actions = listOf("Change group color", "Rename group", "Delete group")
-            val dialog = gBuilder.setTitle(group.name)
+            val dialog = gBuilder.setTitle(groupTitle(group))
                 .setView(ScrollView(gctx).apply {
                     setPadding(dp(gctx, 16), dp(gctx, 8), dp(gctx, 16), 0)
                     addView(members)
@@ -288,17 +323,27 @@ object HighlightDialogs {
                 .setNeutralButton("Add user", null)
                 .setNegativeButton("Group…", null)
                 .show()
-            ChatLive.placeBesideChat(dialog, dp(gctx, 420))
+            ChatLive.placeBesideChat(dialog, if (wide && group.members.size > 1) panelWidth else dp(gctx, 420))
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener { addUser(group) { renderGroup() } }
             dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener {
+                val actions = listOf("Change group color", "Rename group", if (isDefault(group)) "Unset default group" else "Set as default group", "Delete group")
                 choose(group.name, actions) { which ->
                     when (which) {
                         0 -> groupColor(group) { renderGroup() }
                         1 -> showTextInput(gctx, "Rename group", group.name, "Group name") { name ->
-                            group.name = name; save(); render(); dialog.setTitle(name)
+                            val wasDefault = isDefault(group)
+                            group.name = name
+                            if (wasDefault) setDefault(name)
+                            save(); render(); dialog.setTitle(groupTitle(group))
                         }
-                        2 -> choose("Delete ${group.name}?", listOf("Keep its users as ungrouped", "Remove its users too")) { keep ->
+                        // Long-pressing a chatter in the chat adds them to (or removes them from) this group.
+                        2 -> {
+                            setDefault(if (isDefault(group)) null else group.name)
+                            render(); dialog.setTitle(groupTitle(group))
+                        }
+                        3 -> choose("Delete ${group.name}?", listOf("Keep its users as ungrouped", "Remove its users too")) { keep ->
                             if (keep == 0) group.members.forEach { m -> entries.add(m to group.color) }
+                            if (isDefault(group)) setDefault(null)
                             groups.remove(group); save(); render(); dialog.dismiss()
                         }
                     }
@@ -307,28 +352,36 @@ object HighlightDialogs {
         }
 
         render = {
-            list.removeAllViews()
-            if (groups.isEmpty() && entries.isEmpty()) {
-                list.addView(TextView(ctx).apply {
-                    text = "No highlighted users yet."
-                    setPadding(dp(ctx, 8), dp(ctx, 16), dp(ctx, 8), dp(ctx, 16))
-                })
+            val empty = groups.isEmpty() && entries.isEmpty()
+            if (wide) {
+                groupColumn.removeAllViews()
+                userColumn.removeAllViews()
+                while (list.childCount > 1) list.removeViewAt(1)
+            } else {
+                list.removeAllViews()
             }
-            if (groups.isNotEmpty()) {
-                list.addView(header("Groups"))
-                groups.forEach { group ->
-                    val count = group.members.size
-                    list.addView(row(group.color, "${group.name} ($count user${if (count == 1) "" else "s"})", { showGroup(group) }, null, { groupColor(group) {} }, folder = true))
-                }
+            val groupTarget = if (wide) groupColumn else list
+            val userTarget = if (wide) userColumn else list
+            fun note(target: LinearLayout, message: String) = target.addView(TextView(ctx).apply {
+                text = message
+                setPadding(dp(ctx, 8), dp(ctx, if (wide) 4 else 16), dp(ctx, 8), dp(ctx, 16))
+            })
+            if (empty && !wide) note(list, "No highlighted users yet.")
+            if (groups.isNotEmpty() || wide) groupTarget.addView(header("Groups"))
+            if (wide && groups.isEmpty()) note(groupTarget, "No groups yet.")
+            groups.forEach { group ->
+                val count = group.members.size
+                groupTarget.addView(row(group.color, "${groupTitle(group)} ($count user${if (count == 1) "" else "s"})", { showGroup(group) }, null, { groupColor(group) {} }, folder = true))
             }
-            if (entries.isNotEmpty()) {
-                if (groups.isNotEmpty()) list.addView(header("Ungrouped"))
-                entries.toList().forEach { (user, color) ->
-                    val rowColor = color ?: UserHighlights.getDefaultColor(ctx)
-                    list.addView(row(rowColor, user, { userOptions(user, null) {} }, {
-                        detach(user); save(); render()
-                    }, { userColor(user, null) {} }))
-                }
+            if (entries.isNotEmpty() || wide) {
+                if (groups.isNotEmpty() || wide) userTarget.addView(header("Ungrouped"))
+            }
+            if (wide && entries.isEmpty()) note(userTarget, "No ungrouped users.")
+            entries.toList().forEach { (user, color) ->
+                val rowColor = color ?: UserHighlights.getDefaultColor(ctx)
+                userTarget.addView(row(rowColor, user, { userOptions(user, null) {} }, {
+                    detach(user); save(); render()
+                }, { userColor(user, null) {} }))
             }
         }
         render()
@@ -339,7 +392,7 @@ object HighlightDialogs {
             .setNeutralButton("Add user", null)
             .setNegativeButton("New group", null)
             .show()
-        ChatLive.placeBesideChat(dialog, dp(ctx, 420))
+        ChatLive.placeBesideChat(dialog, panelWidth)
         // Keep the list open after these.
         dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener { addUser(null) {} }
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener {
@@ -413,7 +466,7 @@ object HighlightDialogs {
         val metrics = ctx.resources.displayMetrics
         // Beside an open chat the picker only gets the space left of it: three columns only if
         // that space is wide enough, otherwise the stacked layout.
-        val besideChat = ChatLive.widthLeftOfChat(ctx)
+        val besideChat = ChatLive.usableWidthBesideChat(ctx)
         val landscape = metrics.widthPixels > metrics.heightPixels && (besideChat == null || besideChat >= dp(ctx, 720))
 
         // Chat preview: a normal message, the highlighted one, another normal message, styled like

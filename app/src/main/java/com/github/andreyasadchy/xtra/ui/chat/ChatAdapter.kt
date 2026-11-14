@@ -100,7 +100,7 @@ class ChatAdapter(
         } ?: return
         val result = ChatAdapterUtils.prepareChatMessage(
             chatMessage, fragment.requireContext(), holder.textView, enableTimestamps, timestampFormat, firstMsgVisibility, firstChatMsg,
-            redeemedChatMsg, redeemedNoMsg, rewardChatMsg, replyMessage, imageClickListener, useRandomColors, random, useReadableColors, isLightTheme, // Xtra5 custom: emotes tappable in the main chat (was null)
+            redeemedChatMsg, redeemedNoMsg, rewardChatMsg, replyMessage, com.github.andreyasadchy.xtra.custom.ChatLongPress.wrap(imageClickListener), useRandomColors, random, useReadableColors, isLightTheme, // Xtra5 custom: emotes tappable in the main chat (was null); long-press emote to input
             nameDisplay, useBoldNames, showNamePaints, namePaints, showSTVBadges, stvBadges, showGifMessages, showPersonalEmotes, personalEmoteSets,
             stvUsers, enableOverlayEmotes, showSystemMessageEmotes, loggedInUser, chatUrl, getEmoteBytes, userColors, savedColors, translateAllMessages,
             translateMessage, showLanguageDownloadDialog, true, localTwitchEmotes, thirdPartyEmotes, globalBadges, channelBadges, cheerEmotes,

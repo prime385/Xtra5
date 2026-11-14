@@ -21,6 +21,8 @@ object UserHighlights {
     const val PREF_USERS = "xtra5_highlight_users"
     const val PREF_COLOR = "xtra5_highlight_color"
     const val PREF_GROUPS = "xtra5_highlight_groups"
+    /** Name of the group that long-pressing a chatter adds them to (or removes them from). */
+    const val PREF_DEFAULT_GROUP = "xtra5_default_group"
 
     /** A named group; every member uses the group's color (the group color is master). */
     class Group(var name: String, var color: Int, val members: MutableList<String>)
@@ -114,5 +116,29 @@ object UserHighlights {
             8 -> hex.toLongOrNull(16)?.toInt()
             else -> null
         }?.let { Color.argb(Color.alpha(it), Color.red(it), Color.green(it), Color.blue(it)) }
+    }
+
+    fun defaultGroupName(context: Context): String? = context.prefs().getString(PREF_DEFAULT_GROUP, null)?.takeIf { it.isNotEmpty() }
+
+    /**
+     * Long-press on a chatter: moves [name] into the default group, or takes them out of it if
+     * they are already in it. A user is in one place only, so they leave ungrouped/other groups.
+     * Returns the message to show.
+     */
+    fun toggleInDefaultGroup(context: Context, name: String): String {
+        val prefs = context.prefs()
+        val groups = parseGroups(prefs.getString(PREF_GROUPS, null))
+        val defaultName = defaultGroupName(context)
+        val group = groups.firstOrNull { it.name == defaultName } ?: return "No default group set"
+        val entries = parseEntries(prefs.getString(PREF_USERS, null)).toMutableList()
+        val wasMember = group.members.any { it.equals(name, true) }
+        entries.removeAll { it.first.equals(name, true) }
+        groups.forEach { g -> g.members.removeAll { it.equals(name, true) } }
+        if (!wasMember) group.members.add(name)
+        prefs.edit()
+            .putString(PREF_USERS, serializeEntries(entries))
+            .putString(PREF_GROUPS, serializeGroups(groups))
+            .apply()
+        return if (wasMember) "$name removed from ${group.name}" else "$name added to ${group.name}"
     }
 }

@@ -21,7 +21,7 @@ import java.lang.ref.WeakReference
  * Xtra5 custom: the open chat, for live highlight updates and for placing dialogs beside it.
  *  - refreshChat(): re-draws the chat's messages (e.g. after highlights change).
  *  - previewUser(): recolors one user's messages on screen right away, while picking a color.
- *  - placeBesideChat(): with the chat beside the video (landscape), puts a dialog just left of it.
+ *  - placeBesideChat(): with the chat beside the video (landscape), centres a dialog left of it.
  *
  * Kept in its own package so upstream Xtra updates can be merged without conflicts.
  * The chat list is registered by ChatAppearance.apply; rows carry their sender from markRow.
@@ -91,21 +91,28 @@ object ChatLive {
         return available.takeIf { it > (200 * context.resources.displayMetrics.density) }
     }
 
+    /** Share of the space left of the chat that a dialog may use (it is centred in that space). */
+    private const val USABLE = 0.9f
+
+    /** Widest a dialog beside the chat can be (landscape, chat beside the video), or null. */
+    fun usableWidthBesideChat(context: Context): Int? = widthLeftOfChat(context)?.let { (it * USABLE).toInt() }
+
     /**
-     * Puts [dialog] just left of the chat, at most [maxWidth] wide. No-op without a chat beside.
+     * Centres [dialog] in the space left of the chat, at most [maxWidth] wide (and at most 90% of
+     * that space). No-op without a chat beside.
      * The chat stays bright: Android's whole-screen dimming is switched off and only the video is
      * dimmed (same strength) while the dialog is open.
      */
     fun placeBesideChat(dialog: Dialog, maxWidth: Int) {
         val window = dialog.window ?: return
         val available = widthLeftOfChat(dialog.context) ?: return
-        val width = minOf(maxWidth, available)
+        val width = minOf(maxWidth, (available * USABLE).toInt())
         val dim = window.attributes.dimAmount.takeIf { it > 0f } ?: 0.32f
         window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
         window.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
         window.attributes = window.attributes.apply {
             gravity = Gravity.START or Gravity.CENTER_VERTICAL
-            x = available - width
+            x = (available - width) / 2
         }
         dimVideo(dialog, dim)
     }

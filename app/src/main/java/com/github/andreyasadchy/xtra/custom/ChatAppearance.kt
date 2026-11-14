@@ -73,11 +73,31 @@ object ChatAppearance {
     private fun watchSpanTaps(textView: TextView) {
         if (textView.getTag(R.id.xtra5_span_tap_watch) == true) return
         textView.setTag(R.id.xtra5_span_tap_watch, true)
+        var downX = 0f
+        var downY = 0f
+        var longPressed = false
         textView.setOnTouchListener { v, event ->
-            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
-                v.setTag(R.id.xtra5_span_tap, hasClickableSpanAt(v as TextView, event.x, event.y))
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downX = event.x
+                    downY = event.y
+                    longPressed = false
+                    v.setTag(R.id.xtra5_span_tap, hasClickableSpanAt(v as TextView, event.x, event.y))
+                }
+                MotionEvent.ACTION_UP -> if (longPressed) {
+                    // After a long-press the release must not also open the emote or message popup.
+                    longPressed = false
+                    val cancel = MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL }
+                    v.onTouchEvent(cancel)
+                    cancel.recycle()
+                    return@setOnTouchListener true
+                }
             }
             false // normal handling continues (the emote's own popup still opens)
+        }
+        // Long-press: emote -> chat input, otherwise the sender in/out of the default group.
+        textView.setOnLongClickListener { v ->
+            ChatLongPress.onLongPress(v as TextView, downX, downY).also { longPressed = it }
         }
     }
 
@@ -107,6 +127,7 @@ object ChatAppearance {
         itemView.setTag(R.id.xtra5_reply_row, chatMessage.type == ChatMessage.REPLY_MESSAGE)
         // Sender, for live highlight previews (ChatLive.previewUser).
         itemView.setTag(R.id.xtra5_row_login, if (chatMessage.type == ChatMessage.REPLY_MESSAGE) null else chatMessage.userLogin?.lowercase())
+        itemView.setTag(R.id.xtra5_row_name, if (chatMessage.type == ChatMessage.REPLY_MESSAGE) null else chatMessage.userName)
         itemView.setTag(R.id.xtra5_row_preview, null)
     }
 

@@ -14,7 +14,9 @@ Chat
   - Organize them into named groups (for example Mods or Friends), each with its own color.
   - Change a color, rename, move or remove anyone in a couple of taps, and see the result live
     in the chat while you choose.
-  - Open your highlights straight from the video player.
+  - Open your highlights straight from the video player; in landscape the panels sit beside
+    the chat and use the extra width.
+  - Pick a default group, then long-press anyone in chat to add them to it (or take them out).
 - A full color picker: color wheel, hex codes, brightness and transparency, presets and your
   own saved colors, with a realistic chat preview.
 - Color-code special messages: subs and announcements, first-time chatters, channel point
@@ -23,6 +25,7 @@ Chat
 - Make chat your own: message spacing, separator lines, font choice and username size.
 - Animated emotes play in sync across the whole chat.
 - Tap an emote to see its details; tap a message to see the conversation.
+- Long-press an emote in chat to put it in your message, ready to send.
 - Conversation and emote popups open beside the chat, so the video stays visible.
 - Compact reply lines that show more of the original message.
 

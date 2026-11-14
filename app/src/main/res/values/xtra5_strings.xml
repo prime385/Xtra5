@@ -40,6 +40,7 @@
     <item name="xtra5_span_tap_watch" type="id" />
     <item name="xtra5_battery" type="id" />
     <item name="xtra5_row_login" type="id" />
+    <item name="xtra5_row_name" type="id" />
     <item name="xtra5_row_preview" type="id" />
     <item name="xtra5_player_highlights" type="id" />
     <item name="xtra5_chat_popup" type="id" />

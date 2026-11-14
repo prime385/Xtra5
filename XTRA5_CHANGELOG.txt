@@ -1,6 +1,28 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.36.0 (2026-11-14)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Default highlight group: open a group, tap Group... and choose "Set as default group"
+  (or "Unset default group"). It is marked "(default)" in the list.
+- Long-press a message or a name in chat to add that chatter to the default group, or take
+  them out if they're already in it. Someone in another group or ungrouped moves to it.
+  Shows "No default group set" if there isn't one. Grey "replying to" lines are ignored.
+- Long-press an emote in chat to put its text into the chat input (not sent). The input
+  appears if it was hidden.
+
+Changed
+- Highlight panels beside the chat in landscape are now centred in the space left of the chat
+  and up to 90% of its width, instead of hugging the chat.
+- Highlighted users list in landscape shows two columns: Groups | Ungrouped. Group members
+  also show in two columns, and the color picker uses its wide three-column layout whenever
+  there's room.
+
+Behind the scenes
+- Renaming the default group keeps it the default; deleting it clears the default.
+========================================
 Xtra5 1.35.0 (2026-11-14)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 
