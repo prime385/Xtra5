@@ -32,6 +32,7 @@ object StreamCards {
     private val regular = Typeface.create("sans-serif", Typeface.NORMAL)
 
     fun apply(binding: FragmentStreamsListItemBinding, stream: Stream, fragment: Fragment) {
+        Favorites.bind(binding, stream, fragment) // long-press the profile picture: favourite
         // Long-press: open this stream in audio-only quality, just this once.
         binding.root.setOnLongClickListener {
             val activity = fragment.activity as? MainActivity ?: return@setOnLongClickListener false

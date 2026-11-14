@@ -75,7 +75,7 @@ class FollowedStreamsDataSource(
                     list.add(stream)
                 }
             }
-            list.sortByDescending { it.viewerCount }
+            com.github.andreyasadchy.xtra.custom.Favorites.sortFollowed(list) // Xtra5 custom (was: list.sortByDescending { it.viewerCount })
             LoadResult.Page(
                 data = list,
                 prevKey = null,

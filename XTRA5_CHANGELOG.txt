@@ -1,6 +1,17 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.32.0 (2026-11-14)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Favourite streamers: long-press a streamer's profile picture on a live stream card to
+  favourite or unfavourite them. Favourites get a 3dp gold ring around the profile picture and a
+  gold star on top, centred at the bottom and hanging slightly below.
+- Following > Live lists favourites first (A-Z), then everyone else (A-Z), instead of by viewer
+  count. The order updates straight away after favouriting. (With more than 100 followed
+  channels live at once, only the first 100 are sorted this way.)
+========================================
 Xtra5 1.31.0 (2026-11-14)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

@@ -41,6 +41,7 @@ object UpstreamUpdates {
 
     /** Called from MainActivity.onCreate, before the built-in update check runs. */
     fun onMainActivityCreate(activity: AppCompatActivity) {
+        Favorites.init(activity) // Xtra5: favourite streamers
         FixedTopBar.register(activity) // Xtra5: fixed top bar (Settings > UI)
         RefreshButton.register(activity) // Xtra5: refresh button in the top bar
         (activity as? com.github.andreyasadchy.xtra.ui.main.MainActivity)?.let {
