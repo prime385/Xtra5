@@ -1,6 +1,14 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.34.1 (2026-11-14)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Favouriting from Following > Channels didn't show the gold ring and star on Following > Live
+  (the sorting did change), and vice versa: cards that only moved weren't redrawn. Every open
+  stream and channel list now redraws when a favourite changes.
+========================================
 Xtra5 1.34.0 (2026-11-14)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

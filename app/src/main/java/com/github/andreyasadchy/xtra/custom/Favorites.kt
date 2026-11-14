@@ -34,6 +34,20 @@ object Favorites {
     private const val GOLD = 0xFFFFC107.toInt()
 
     private var appContext: Context? = null
+
+    // Lists showing stream / channel cards, so a change redraws every card's ring and star
+    // (cards that only move when the list re-sorts aren't redrawn by the list itself).
+    private val lists = ArrayList<java.lang.ref.WeakReference<androidx.recyclerview.widget.RecyclerView>>()
+
+    private fun remember(card: View) {
+        val list = card.parent as? androidx.recyclerview.widget.RecyclerView ?: return
+        lists.removeAll { it.get() == null }
+        if (lists.none { it.get() === list }) lists.add(java.lang.ref.WeakReference(list))
+    }
+
+    private fun redrawAll() {
+        lists.mapNotNull { it.get() }.forEach { list -> list.adapter?.let { it.notifyItemRangeChanged(0, it.itemCount) } }
+    }
     private var ids: MutableSet<String>? = null
 
     fun init(context: Context) {
@@ -63,6 +77,7 @@ object Favorites {
 
     /** Called for every live stream card (from StreamCards). Toggling re-sorts the list. */
     fun bind(binding: FragmentStreamsListItemBinding, stream: Stream, fragment: Fragment) {
+        binding.root.post { remember(binding.root) }
         decorate(binding.userImage, stream.channelId, stream.channelName ?: stream.channelLogin) {
             fragment.activity?.let { RefreshButton.refreshCurrentScreen(it, showMessage = false) } // re-sort
         }
@@ -70,6 +85,7 @@ object Favorites {
 
     /** Following > Channels cards: same toggle and look, but the order there doesn't change. */
     fun bindChannel(binding: FragmentFollowedChannelsListItemBinding, user: User) {
+        remember(binding.root)
         decorate(binding.userImage, user.id, user.name ?: user.login) {}
     }
 
@@ -107,6 +123,7 @@ object Favorites {
             show(favorite)
             val label = name ?: "Streamer"
             Toast.makeText(layout.context, if (favorite) "$label added to favourites" else "$label removed from favourites", Toast.LENGTH_SHORT).show()
+            redrawAll() // every open list shows the change
             onToggled()
             true
         }
