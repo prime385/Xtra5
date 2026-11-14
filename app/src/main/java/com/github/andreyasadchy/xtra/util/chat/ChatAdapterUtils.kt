@@ -79,7 +79,7 @@ object ChatAdapterUtils {
                 } else {
                     chatMessage.reply?.userName ?: chatMessage.reply?.userLogin
                 }
-                val string = replyMessage.format(userName, "")
+                val string = com.github.andreyasadchy.xtra.custom.SpecialMessages.replyPrefix(context, replyMessage, userName) // Xtra5 custom (was: replyMessage.format(userName, ""))
                 builder.append(string)
                 builder.setSpan(ForegroundColorSpan(getSavedColor("#999999", savedColors, useReadableColors, isLightTheme)), 0, string.length, SPAN_EXCLUSIVE_EXCLUSIVE)
                 builderIndex += string.length
@@ -403,6 +403,7 @@ object ChatAdapterUtils {
                     UserHighlights.colorFor(context, chatMessage) != null -> itemView.setBackgroundColor(UserHighlights.colorFor(context, chatMessage)!!) // Xtra5 custom
                     else -> itemView.setBackgroundResource(0)
                 }
+                com.github.andreyasadchy.xtra.custom.SpecialMessages.applyColors(context, itemView, chatMessage, wasMentioned, firstMsgVisibility) // Xtra5 custom
             }
         }
         return MessageResult(builder, images, imagePaint, userName, userNameStartIndex, translated)

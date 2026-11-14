@@ -79,4 +79,11 @@
     <string name="xtra5_battery_show_summary" translatable="false">In fullscreen video, top-right corner. Not shown when TV mode shortcuts are on</string>
     <string name="xtra5_battery_faded_opacity" translatable="false">Faded opacity (%) after 4 s without touching</string>
     <string name="xtra5_chat_line_opacity" translatable="false">Line opacity (%)</string>
+    <string name="xtra5_special_messages" translatable="false">Special messages (Xtra5)</string>
+    <string name="xtra5_color_notice" translatable="false">Subs and notices</string>
+    <string name="xtra5_color_first" translatable="false">First-time chatters</string>
+    <string name="xtra5_color_reward" translatable="false">Channel point rewards</string>
+    <string name="xtra5_color_mention" translatable="false">Mentions of you</string>
+    <string name="xtra5_color_bot" translatable="false">Bot messages</string>
+    <string name="xtra5_bot_accounts" translatable="false">Bot accounts</string>
 </resources>

@@ -1,6 +1,22 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.34.0 (2026-11-14)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+New
+- Special message colors (Settings > Chat > Special messages): pick the background color for
+  subs and notices (subs, gift subs, raids, announcements), first-time chatters, channel point
+  rewards, mentions of you and bot messages, with the usual color picker. Defaults are the
+  official colors.
+- Bot messages: a built-in list of common bots (Nightbot, StreamElements, Moobot, Fossabot,
+  Streamlabs and more) plus your own additions in Bot accounts (one per line, with a reset to
+  the built-in list). Your own user highlights take priority over the bot color.
+
+Changed
+- Reply lines start with a small right-pointing reply icon instead of "Replying to", leaving
+  more room for the original message.
+========================================
 Xtra5 1.33.0 (2026-11-14)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

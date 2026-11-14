@@ -441,4 +441,42 @@
 
     </PreferenceCategory>
 
+    <!-- Xtra5 custom: special message colors -->
+    <PreferenceCategory
+        android:title="@string/xtra5_special_messages"
+        app:iconSpaceReserved="false">
+
+        <com.github.andreyasadchy.xtra.custom.SpecialColorPreference
+            android:key="xtra5_color_notice"
+            android:title="@string/xtra5_color_notice"
+            app:singleLineTitle="false" />
+
+        <com.github.andreyasadchy.xtra.custom.SpecialColorPreference
+            android:key="xtra5_color_first"
+            android:title="@string/xtra5_color_first"
+            app:singleLineTitle="false" />
+
+        <com.github.andreyasadchy.xtra.custom.SpecialColorPreference
+            android:key="xtra5_color_reward"
+            android:title="@string/xtra5_color_reward"
+            app:singleLineTitle="false" />
+
+        <com.github.andreyasadchy.xtra.custom.SpecialColorPreference
+            android:key="xtra5_color_mention"
+            android:title="@string/xtra5_color_mention"
+            app:singleLineTitle="false" />
+
+        <com.github.andreyasadchy.xtra.custom.SpecialColorPreference
+            android:key="xtra5_color_bot"
+            android:title="@string/xtra5_color_bot"
+            app:singleLineTitle="false" />
+
+        <com.github.andreyasadchy.xtra.custom.BotAccountsPreference
+            android:key="xtra5_bot_accounts"
+            android:title="@string/xtra5_bot_accounts"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+    </PreferenceCategory>
+
 </androidx.preference.PreferenceScreen>
