@@ -91,6 +91,7 @@ object ProgressOverlay {
         val realDuration = view.findViewById<TextView>(R.id.duration)
         fun timeText(like: TextView?) = TextView(view.context).apply {
             visibility = View.GONE
+            setSingleLine() // Xtra5: never wraps onto two lines when the text grows
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             if (like != null) {
                 setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, like.textSize)
@@ -134,11 +135,13 @@ object ProgressOverlay {
     private fun matchPosition(state: State) {
         copyPlace(state, state.realBar, state.bar, matchWidth = true)
         state.realPosition?.let { copyPlace(state, it, state.position, matchWidth = false) }
-        state.realDuration?.let { copyPlace(state, it, state.duration, matchWidth = false) }
+        // Xtra5: the end time is held by its right edge (like the real one), so a longer
+        // countdown grows leftwards instead of running off the edge and wrapping.
+        state.realDuration?.let { copyPlace(state, it, state.duration, matchWidth = false, alignEnd = true) }
     }
 
     /** Puts [copy] exactly where [real] is (relative to the video area). */
-    private fun copyPlace(state: State, real: View, copy: View, matchWidth: Boolean) {
+    private fun copyPlace(state: State, real: View, copy: View, matchWidth: Boolean, alignEnd: Boolean = false) {
         if (!real.isShown || real.width == 0) return
         val realLoc = IntArray(2).also { real.getLocationInWindow(it) }
         val boxLoc = IntArray(2).also { state.container.getLocationInWindow(it) }
@@ -147,6 +150,19 @@ object ProgressOverlay {
         val top = realLoc[1] - boxLoc[1]
         val width = if (matchWidth) real.width else FrameLayout.LayoutParams.WRAP_CONTENT
         val height = if (matchWidth) real.height else FrameLayout.LayoutParams.WRAP_CONTENT
+        if (alignEnd) {
+            val right = state.container.width - (left + real.width)
+            if (params.width != width || params.height != height || params.rightMargin != right || params.topMargin != top || params.leftMargin != 0) {
+                params.width = width
+                params.height = height
+                params.leftMargin = 0
+                params.rightMargin = right
+                params.topMargin = top
+                params.gravity = android.view.Gravity.TOP or android.view.Gravity.END
+                copy.layoutParams = params
+            }
+            return
+        }
         if (params.width != width || params.height != height || params.leftMargin != left || params.topMargin != top) {
             params.width = width
             params.height = height

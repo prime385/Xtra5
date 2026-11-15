@@ -1,6 +1,21 @@
 Xtra5 changelog (newest first)
 
 ========================================
+Xtra5 1.48.2 (2026-11-15)
+Based on official Xtra 0ab697d (Xtra 2.60.10)
+
+Fixed
+- Persistent progress bar (VODs, controls hidden): the end time no longer wraps onto two lines
+  when the chapter countdown gains a digit; it stays on one line, lined up on the right.
+- Channel pages: scrolling a tab whose list loaded later (e.g. Videos) no longer hides the
+  tabs along with the banner; the top bar and tabs always stay.
+- Long-pressing a chatter to highlight them (or take them out) no longer makes the chat jump:
+  only their messages on screen change colour, a small finger move after the buzz can't drag
+  the chat, and when you lift your finger the chat is where it was (at the bottom it keeps
+  following new messages, scrolled up it stays put). Same for long-pressing an emote.
+- Changing highlights in the highlights panel (or special message colours) no longer nudges
+  the chat: it keeps its place.
+========================================
 Xtra5 1.48.1 (2026-11-15)
 Based on official Xtra 0ab697d (Xtra 2.60.10)
 

@@ -85,9 +85,14 @@ object ChatAppearance {
                     longPressed = false
                     v.setTag(R.id.xtra5_span_tap, hasClickableSpanAt(v as TextView, event.x, event.y))
                 }
+                MotionEvent.ACTION_CANCEL -> if (longPressed) {
+                    longPressed = false
+                    ChatLongPress.afterLongPress() // Xtra5: chat back where it was
+                }
                 MotionEvent.ACTION_UP -> if (longPressed) {
                     // After a long-press the release must not also open the emote or message popup.
                     longPressed = false
+                    ChatLongPress.afterLongPress() // Xtra5: chat back where it was
                     val cancel = MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL }
                     v.onTouchEvent(cancel)
                     cancel.recycle()

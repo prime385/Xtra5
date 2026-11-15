@@ -40,9 +40,54 @@ object ChatLongPress {
         }
     }
 
+    // Xtra5: where the chat was when the long-press fired, put back when the finger lifts.
+    private var heldList: java.lang.ref.WeakReference<androidx.recyclerview.widget.RecyclerView>? = null
+    private var heldAtBottom = false
+    private var heldAnchor: java.lang.ref.WeakReference<android.view.View>? = null
+    private var heldAnchorTop = 0
+
+    private fun holdPosition(textView: TextView) {
+        val list = textView.parent as? androidx.recyclerview.widget.RecyclerView ?: return
+        // After the buzz the finger is still down: don't let a small move drag the chat.
+        list.requestDisallowInterceptTouchEvent(true)
+        list.stopScroll()
+        heldList = java.lang.ref.WeakReference(list)
+        heldAtBottom = !list.canScrollVertically(1)
+        val anchor = list.getChildAt(0)
+        heldAnchor = anchor?.let { java.lang.ref.WeakReference(it) }
+        heldAnchorTop = anchor?.top ?: 0
+    }
+
+    /**
+     * Xtra5: the finger lifted after a long-press. At the bottom: back to the newest message and
+     * following again. Scrolled up: exactly where it was.
+     */
+    fun afterLongPress() {
+        val list = heldList?.get() ?: return
+        heldList = null
+        list.post {
+            if (heldAtBottom) {
+                val count = list.adapter?.itemCount ?: 0
+                if (count > 0) list.scrollToPosition(count - 1)
+                // The chat follows new messages only while its "down" button is hidden.
+                generateSequence(list.parent as? android.view.ViewGroup) { it.parent as? android.view.ViewGroup }
+                    .firstNotNullOfOrNull { it.findViewById<android.view.View>(R.id.btnDown) }
+                    ?.visibility = android.view.View.GONE
+            } else {
+                val anchor = heldAnchor?.get()
+                if (anchor != null && anchor.parent === list) {
+                    val moved = anchor.top - heldAnchorTop
+                    if (moved != 0) list.scrollBy(0, moved)
+                }
+            }
+            heldAnchor = null
+        }
+    }
+
     /** Returns true when the long-press was used (so the release doesn't also count as a tap). */
     fun onLongPress(textView: TextView, x: Float, y: Float): Boolean {
         if (textView.getTag(R.id.xtra5_reply_row) == true) return false
+        holdPosition(textView)
         imageSpanAt(textView, x, y)?.let { span ->
             capturing = true
             captured = null
@@ -60,8 +105,10 @@ object ChatLongPress {
         }
         val login = textView.getTag(R.id.xtra5_row_login) as? String ?: return false
         val name = (textView.getTag(R.id.xtra5_row_name) as? String)?.takeIf { it.equals(login, true) } ?: login
+        val before = UserHighlights.colorForLogin(textView.context, login)
         Toast.makeText(textView.context, UserHighlights.toggleInDefaultGroup(textView.context, name), Toast.LENGTH_SHORT).show()
-        ChatLive.refreshChat()
+        // Xtra5: recolour just that chatter's rows on screen, so the chat doesn't jump.
+        ChatLive.recolorUser(textView.context, login, before)
         return true
     }
 

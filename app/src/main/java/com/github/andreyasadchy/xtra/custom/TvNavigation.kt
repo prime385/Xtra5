@@ -94,6 +94,21 @@ object TvNavigation {
             findLists(root).forEach { if (it.isNestedScrollingEnabled) it.isNestedScrollingEnabled = false }
             setCollapsed(list.computeVerticalScrollOffset() > 0)
         }
+        // Xtra5: never past "banner hidden, top bar and tabs showing". A list made after this
+        // screen was set up (e.g. the Videos tab) can still push the header on its first scroll,
+        // which used to hide the tabs too; put it back at the tabs.
+        appBar.addOnOffsetChangedListener { bar, offset ->
+            val limit = -(bar.height - toolbar.height - bottomBar.height).coerceIn(0, bar.totalScrollRange)
+            if (offset < limit) {
+                val behavior = (bar.layoutParams as? CoordinatorLayout.LayoutParams)?.behavior as? AppBarLayout.Behavior ?: return@addOnOffsetChangedListener
+                bar.post {
+                    if (behavior.topAndBottomOffset < limit) {
+                        behavior.setTopAndBottomOffset(limit)
+                        bar.requestLayout()
+                    }
+                }
+            }
+        }
         val observer = fragment.activity?.window?.decorView?.viewTreeObserver ?: return
         observer.addOnScrollChangedListener(listener)
         root.post { findLists(root).forEach { it.isNestedScrollingEnabled = false } }

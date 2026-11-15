@@ -43,7 +43,27 @@ object ChatLive {
 
     /** Re-draws every message of the open chat(s), so highlight changes show at once. */
     fun refreshChat() {
-        alive().forEach { list -> list.adapter?.let { it.notifyItemRangeChanged(0, it.itemCount) } }
+        alive().forEach { list ->
+            // Re-drawing every message must not move the chat: at the bottom it stays at the
+            // bottom, scrolled up the same message stays at the same spot.
+            val manager = list.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager
+            val atBottom = !list.canScrollVertically(1)
+            val first = manager?.findFirstVisibleItemPosition() ?: RecyclerView.NO_POSITION
+            val offset = if (first != RecyclerView.NO_POSITION) (manager?.findViewByPosition(first)?.top ?: 0) - list.paddingTop else 0
+            list.adapter?.let { it.notifyItemRangeChanged(0, it.itemCount) }
+            if (manager == null) return@forEach
+            val restore = Runnable {
+                val count = list.adapter?.itemCount ?: 0
+                when {
+                    count == 0 || list.scrollState != RecyclerView.SCROLL_STATE_IDLE -> Unit // you're scrolling: leave it
+                    atBottom -> list.scrollToPosition(count - 1)
+                    first != RecyclerView.NO_POSITION && first < count -> manager.scrollToPositionWithOffset(first, offset)
+                }
+            }
+            list.post(restore)
+            // Once the re-drawn emotes have their sizes.
+            list.postDelayed(restore, 300)
+        }
     }
 
     /**
@@ -68,6 +88,30 @@ object ChatLive {
                     row.setTag(R.id.xtra5_row_preview, null)
                 }
             }
+        }
+    }
+
+    /**
+     * Xtra5: [login]'s highlight changed from [before]: recolours only their rows on screen (in
+     * every open chat) instead of re-drawing the whole chat, which made it jump. Rows with their own
+     * special background keep it. Rows kept aside for quick re-use are dropped so they're drawn
+     * afresh; the rest pick the new colour up when they scroll into view.
+     */
+    fun recolorUser(context: Context, login: String, before: Int?) {
+        val after = UserHighlights.colorForLogin(context, login)
+        alive().forEach { list ->
+            for (i in 0 until list.childCount) {
+                val row = list.getChildAt(i)
+                if (row.getTag(R.id.xtra5_row_login) != login) continue
+                val current = (row.background as? ColorDrawable)?.color
+                val previewed = row.getTag(R.id.xtra5_row_preview) as? Int
+                val eligible = row.background == null || current == before || (previewed != null && current == previewed)
+                if (!eligible) continue
+                row.setTag(R.id.xtra5_row_preview, null)
+                if (after != null) row.setBackgroundColor(after) else row.background = null
+            }
+            list.setItemViewCacheSize(0)
+            list.setItemViewCacheSize(2)
         }
     }
 
